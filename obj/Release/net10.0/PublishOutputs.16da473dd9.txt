@@ -1,0 +1,7 @@
+C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\PubTmp\Out\WiseLabels.exe
+C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\PubTmp\Out\appsettings.Development.json
+C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\PubTmp\Out\appsettings.json
+C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\PubTmp\Out\WiseLabels.dll
+C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\PubTmp\Out\WiseLabels.deps.json
+C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\PubTmp\Out\WiseLabels.runtimeconfig.json
+C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\PubTmp\Out\WiseLabels.pdb
