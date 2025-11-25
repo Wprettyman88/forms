@@ -3,6 +3,10 @@ Label Quotes.
 Label Orders.  
 Label Invoices.  
 
+## Deployment
+[Production](https://wiselabels20251125155258-btbvc6cwdwetbjdc.canadacentral-01.azurewebsites.net/)
+[Development](https://wiselabels2025112515525-wiselabels-dev-f7bqa3fsamakdpcs.canadacentral-01.azurewebsites.net)
+
 ## Software Product Requirements
 
 ### User Access Requirements
