@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WiseLabels")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ce654c84e8229ece3f13e211ecd30552dea847dd")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4a963ab8d58dc2637cb4656c96372e6430ce258f")]
 [assembly: System.Reflection.AssemblyProductAttribute("WiseLabels")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WiseLabels")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

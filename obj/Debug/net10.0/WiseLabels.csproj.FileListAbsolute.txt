@@ -22,7 +22,6 @@ C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\rjsmcshtml.dswa.cache
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\scopedcss\Pages\Shared\_Layout.cshtml.rz.scp.css
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\scopedcss\bundle\WiseLabels.styles.css
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\scopedcss\projectbundle\WiseLabels.bundle.scp.css
-C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\compressed\vnso7bc73p-{0}-b9sayid5wm-b9sayid5wm.gz
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\compressed\naxsbbxeos-{0}-61n19gt1b8-61n19gt1b8.gz
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\compressed\y09rpuo3s5-{0}-xtxxf3hu2r-xtxxf3hu2r.gz
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\compressed\07wza090qo-{0}-bqjiyaj88i-bqjiyaj88i.gz
@@ -97,3 +96,4 @@ C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\refint\WiseLabels.dll
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\WiseLabels.pdb
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\WiseLabels.genruntimeconfig.cache
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\ref\WiseLabels.dll
+C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\compressed\vnso7bc73p-{0}-t97auj8f1x-t97auj8f1x.gz

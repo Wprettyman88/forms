@@ -4,7 +4,832 @@
     ViewData["Title"] = "Home page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="quote-page-container">
+    <div class="quote-main-content">
+        <div class="quote-form-header">
+            <h1>Get an Instant Quote</h1>
+            <p class="quote-subtitle">Kick off your custom label journey here and watch your brand come to life.</p>
+        </div>
+
+        <form class="quote-form">
+            <div class="form-section">
+                <label class="form-section-label">Description</label>
+                <div class="form-section-content">
+                    <input type="text" class="form-control" id="description" name="description" min="5">
+                </div>
+            </div>
+
+            <!-- Shape Section -->
+            <div class="form-section">
+                <label class="form-section-label">Shape</label>
+                <div class="form-section-content">
+                    <div class="shape-options">
+                        <label class="shape-option">
+                            <input type="radio" name="shape" value="rectangle" checked>
+                            <span class="shape-label">Rectangle</span>
+                        </label>
+                        <label class="shape-option">
+                            <input type="radio" name="shape" value="square">
+                            <span class="shape-label">Square</span>
+                        </label>
+                        <label class="shape-option">
+                            <input type="radio" name="shape" value="circle">
+                            <span class="shape-label">Circle</span>
+                        </label>
+                        <label class="shape-option">
+                            <input type="radio" name="shape" value="oval">
+                            <span class="shape-label">Oval</span>
+                        </label>
+                        <label class="shape-option">
+                            <input type="radio" name="shape" value="special">
+                            <span class="shape-label">Special</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Corners Section -->
+            <div class="form-section" id="corners-section">
+                <label class="form-section-label">Corners</label>
+                <div class="form-section-content">
+                    <div class="shape-options">
+                        <label class="shape-option">
+                            <input type="radio" name="corners" value="rounded" checked>
+                            <span class="shape-label">Rounded</span>
+                        </label>
+                        <label class="shape-option">
+                            <input type="radio" name="corners" value="square">
+                            <span class="shape-label">Square</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Label Size Section -->
+            <div class="form-section" id="label-size-section">
+                <label class="form-section-label">Label Size</label>
+                <div class="form-section-content">
+                    <div class="label-size-inputs">
+                        <div class="size-input-group">
+                            <label for="label-width">Width</label>
+                            <div class="input-with-unit">
+                                <input type="text" class="form-control" id="label-width" name="label-width" placeholder="" inputmode="decimal">
+                                <span class="input-unit">"</span>
+                            </div>
+                        </div>
+                        <div class="size-separator">X</div>
+                        <div class="size-input-group">
+                            <label for="label-height">Height</label>
+                            <div class="input-with-unit">
+                                <input type="text" class="form-control" id="label-height" name="label-height" placeholder="" inputmode="decimal">
+                                <span class="input-unit">"</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="size-validation-message" id="size-validation" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Diameter Section -->
+            <div class="form-section" id="diameter-section" style="display: none;">
+                <label class="form-section-label">Diameter</label>
+                <div class="form-section-content">
+                    <div class="diameter-input-group">
+                        <div class="input-with-unit">
+                            <input type="text" class="form-control" id="diameter" name="diameter" placeholder="" inputmode="decimal" step="0.01">
+                            <span class="input-unit">"</span>
+                        </div>
+                    </div>
+                    <div class="size-hint">Enter diameter value in inches (to the nearest hundredth)</div>
+                    <div class="size-validation-message" id="diameter-validation" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Cutting Die Section -->
+            <div class="form-section">
+                <label class="form-section-label">Cutting Die</label>
+                <div class="form-section-content">
+                    <select class="form-control" id="cutting-die" name="cutting-die">
+                        <option value="">Existing die size</option>
+                        <option value="new">Custom die size</option>                        
+                    </select>
+                </div>
+            </div>
+
+            <!-- Printing Section -->
+            <div class="form-section">
+                <label class="form-section-label">Printing</label>
+                <div class="form-section-content">
+                    <div class="material-filter">
+                        <button type="button" class="filter-btn active" data-filter="all">Poocess Color - White + CMYK - Digital</button>
+                        <button type="button" class="filter-btn" data-filter="all">Spot Color 1 Standard Ink</button>
+                        <button type="button" class="filter-btn" data-filter="all">Spot Color 2 Standard Ink</button>
+                        <button type="button" class="filter-btn" data-filter="all">Process Color - Digital</button>
+                        <button type="button" class="filter-btn" data-filter="all">Blank Ink Only - Digital</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Material Section -->
+            <div class="form-section">
+                <label class="form-section-label">Material & Finish</label>
+                <div class="form-section-content">
+                    <!--
+                    <div class="material-filter">
+                        <button type="button" class="filter-btn active" data-filter="all">Popular</button>
+                        <button type="button" class="filter-btn" data-filter="all">Water/Oil Resistant</button>
+                        <button type="button" class="filter-btn" data-filter="all">Paper</button>
+                        <button type="button" class="filter-btn" data-filter="all">All</button>
+                    </div>
+                    -->
+                    <div id="material-loading" class="material-loading" style="display: none;">
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Loading materials ...</span>
+                    </div>
+                    <select class="form-control" id="material" name="material" size="10">
+                        <option value="">Loading materials...</option>
+                    </select>
+                    <div id="material-error" class="size-validation-message error" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Finish Section -->
+            <div class="form-section">
+                <label class="form-section-label">Finish</label>
+                <div class="form-section-content">
+                    <select class="form-control" id="finish" name="finish">
+                        <option value="gloss-laminate">Gloss Laminate</option>
+                        <option value="soft-touch-matte">Soft Touch Matte Laminate</option>
+                        <option value="matte-laminate">Matte Laminate</option>
+                        <option value="thermal-transfer-gloss">Thermal Transfer Laminate (Gloss)</option>
+                        <option value="thermal-transfer-matte">Thermal Transfer Laminate (Matte)</option>
+                        <option value="natural">Natural (no finish)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Application Method Section -->
+            <div class="form-section">
+                <label class="form-section-label">Application Method</label>
+                <div class="form-section-content">
+                    <div class="radio-options">
+                        <label class="radio-option">
+                            <input type="radio" name="application-method" value="hand" checked>
+                            <span>Hand</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="application-method" value="machine">
+                            <span>Machine <span class="option-note"></span></span>
+                        </label>
+                    </div>
+                    <!--
+                    <div class="option-hint">This option will add an additional $25 to orders of less than 5,000 labels.</div>
+                    -->
+                </div>
+            </div>
+
+            <!-- Unwind Direction Section -->
+            <div class="form-section">
+                <label class="form-section-label">Unwind Direction</label>
+                <div class="form-section-content">
+                    <div class="radio-options">
+                        <label class="radio-option">
+                            <input type="radio" name="unwind-direction" value="top-off-first" checked>
+                            <span>Top off first (#1)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="unwind-direction" value="bottom-off-first">
+                            <span>Bottom off first (#2)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="unwind-direction" value="right-off-first">
+                            <span>Right off first (#3)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="unwind-direction" value="left-off-first">
+                            <span>Left off first (#4)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Versions and Total Quantity Section -->
+            <div class="form-section">
+                <label class="form-section-label">Versions and Total Quantity</label>
+                <div class="form-section-content">
+                    <div class="versions-input-group">
+                        <div class="input-group-item">
+                            <label for="versions">Versions</label>
+                            <input type="number" class="form-control" id="versions" name="versions" min="1" value="1">
+                            <div class="input-hint">Enter the number of label versions</div>
+                        </div>
+                        <div class="input-group-item">
+                            <label for="total-quantity">Total labels</label>
+                            <input type="number" class="form-control" id="total-quantity" name="total-quantity" min="1">
+                            <div class="input-hint">Of all designs combined</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Label Artwork Section -->
+            <div class="form-section">
+                <label class="form-section-label">Label Artwork</label>
+                <div class="form-section-content">
+                    <div class="radio-options">
+                        <label class="radio-option">
+                            <input type="radio" name="artwork-option" value="upload-now" checked>
+                            <span>Upload artwork now</span>
+                        </label>
+                        <div class="option-hint">Upload your artwork in the next step</div>
+                    </div>
+                    <div class="radio-options" style="margin-top: 1rem;">
+                        <label class="radio-option">
+                            <input type="radio" name="artwork-option" value="upload-later">
+                            <span>Upload artwork later</span>
+                        </label>
+                        <div class="option-hint">Supply files for your order later when you are ready</div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="quote-summary-panel">
+        <div class="summary-content">
+            <h2>Summary</h2>
+            <!--
+            <p class="summary-note">* All prices include unlimited colors and Free Shipping delivery (after production) to anywhere in the 48 contiguous United States.</p>
+            <p class="summary-note">* Prices are guaranteed for 30 days from when the order is added to the shopping cart.</p>
+            -->
+            <div class="summary-section" id="selected-choices-summary">
+                <!-- Dynamic content will be populated here -->
+            </div>
+
+            <div class="summary-actions">
+                <button class="btn btn-primary btn-lg w-100 mb-2">Send Order</button>
+                <button class="btn btn-outline-primary btn-lg w-100">Send Quote</button>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const shapeInputs = document.querySelectorAll('input[name="shape"]');
+        const widthInput = document.getElementById('label-width');
+        const heightInput = document.getElementById('label-height');
+        const diameterInput = document.getElementById('diameter');
+        const sizeValidation = document.getElementById('size-validation');
+        const diameterValidation = document.getElementById('diameter-validation');
+        const cornersSection = document.getElementById('corners-section');
+        const labelSizeSection = document.getElementById('label-size-section');
+        const diameterSection = document.getElementById('diameter-section');
+        const materialSelect = document.getElementById('material');
+        const materialLoading = document.getElementById('material-loading');
+        const materialError = document.getElementById('material-error');
+
+        // Fetch Materials from API via server-side endpoint
+        async function loadMaterials() {
+            try {
+                // Show loading state
+                materialLoading.style.display = 'block';
+                materialError.style.display = 'none';
+                materialSelect.style.opacity = '0.5';
+                materialSelect.disabled = true;
+                materialSelect.innerHTML = '<option value="">Loading materials...</option>';
+
+                // Call server-side endpoint (credentials are handled server-side)
+                const response = await fetch('/Api/Materials', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error occurred' }));
+                    throw new Error(errorData.error || `Failed to load materials: ${response.status}`);
+                }
+
+                const data = await response.json();
+                populateMaterials(data);
+
+            } catch (error) {
+                console.error('Error loading materials:', error);
+                let errorMessage = 'Error loading materials. ';
+                if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
+                    errorMessage += 'Please check your network connection or API availability.';
+                } else {
+                    errorMessage += (error.message || 'Please refresh the page to retry.');
+                }
+                materialError.textContent = errorMessage;
+                materialError.style.display = 'block';
+                materialSelect.innerHTML = '<option value="">Error loading materials. See error message below.</option>';
+            } finally {
+                materialLoading.style.display = 'none';
+                materialSelect.style.opacity = '1';
+                materialSelect.disabled = false;
+            }
+        }
+
+        // Populate Materials dropdown
+        function populateMaterials(data) {
+            // Clear existing options
+            materialSelect.innerHTML = '<option value="">Select a material...</option>';
+            
+            // Handle different response structures
+            let materials = [];
+            if (Array.isArray(data)) {
+                materials = data;
+            } else if (data.Data && Array.isArray(data.Data)) {
+                materials = data.Data;
+            } else if (data.items && Array.isArray(data.items)) {
+                materials = data.items;
+            } else if (data.results && Array.isArray(data.results)) {
+                materials = data.results;
+            }
+
+            // Populate dropdown
+            materials.forEach(material => {
+                const option = document.createElement('option');
+                
+                // Get ID
+                const materialId = material.ID || material.id || material.Id || '';
+                option.value = materialId;
+                
+                // Get description - handle ParameterResponse structure with Descriptions array
+                let description = 'Unknown';
+                if (material.Description) {
+                    description = material.Description;
+                } else if (material.description) {
+                    description = material.description;
+                } else if (material.name) {
+                    description = material.name;
+                } else if (material.Descriptions && Array.isArray(material.Descriptions) && material.Descriptions.length > 0) {
+                    // Use first description, or find English (en) if available
+                    const englishDesc = material.Descriptions.find(d => 
+                        (d.ISOLanguageCode && d.ISOLanguageCode.toLowerCase().startsWith('en')) ||
+                        (d.isoLanguageCode && d.isoLanguageCode.toLowerCase().startsWith('en'))
+                    );
+                    const desc = englishDesc || material.Descriptions[0];
+                    description = desc.Description || desc.description || 'Unknown';
+                }
+                
+                option.textContent = description;
+                materialSelect.appendChild(option);
+            });
+
+            // Update summary panel if material was already selected
+            updateSummaryPanel();
+        }
+
+        // Function to format number without trailing zeros
+        function formatNumber(value) {
+            if (!value || isNaN(value)) return '';
+            const num = parseFloat(value);
+            // Remove trailing zeros
+            return num.toString().replace(/\.0+$/, '').replace(/(\d+\.\d*?)0+$/, '$1');
+        }
+
+        // Function to round to nearest 1/32"
+        function roundToNearest32nd(value) {
+            if (!value || isNaN(value)) return '';
+            const num = parseFloat(value);
+            return formatNumber(Math.round(num * 32) / 32);
+        }
+
+        // Function to round to nearest hundredth
+        function roundToNearestHundredth(value) {
+            if (!value || isNaN(value)) return '';
+            const num = parseFloat(value);
+            return formatNumber(Math.round(num * 100) / 100);
+        }
+
+        // Function to validate diameter
+        function validateDiameter() {
+            const selectedShape = document.querySelector('input[name="shape"]:checked').value;
+            const diameter = parseFloat(diameterInput.value);
+
+            if (!diameterInput.value) {
+                diameterValidation.style.display = 'none';
+                return;
+            }
+
+            if (isNaN(diameter)) {
+                diameterValidation.textContent = 'Please enter a valid number.';
+                diameterValidation.className = 'size-validation-message error';
+                diameterValidation.style.display = 'block';
+                return;
+            }
+
+            // Size constraints for diameter (same as width max, but for diameter)
+            const minDiameter = 0.5;
+            const maxDiameter = 12.375; // Max is the smaller of width/height max
+
+            if (diameter < minDiameter || diameter > maxDiameter) {
+                diameterValidation.textContent = 'Diameter must be between 0.5" and 12.375".';
+                diameterValidation.className = 'size-validation-message error';
+                diameterValidation.style.display = 'block';
+                return;
+            }
+
+            diameterValidation.style.display = 'none';
+        }
+
+        // Function to validate label size based on shape
+        function validateLabelSize() {
+            const selectedShape = document.querySelector('input[name="shape"]:checked').value;
+            
+            // Skip validation for circle and oval (they use diameter)
+            if (selectedShape === 'circle' || selectedShape === 'oval') {
+                sizeValidation.style.display = 'none';
+                return;
+            }
+
+            const width = parseFloat(widthInput.value);
+            const height = parseFloat(heightInput.value);
+
+            if (!widthInput.value || !heightInput.value) {
+                sizeValidation.style.display = 'none';
+                return;
+            }
+
+            if (isNaN(width) || isNaN(height)) {
+                sizeValidation.textContent = 'Please enter valid numbers for width and height.';
+                sizeValidation.className = 'size-validation-message error';
+                sizeValidation.style.display = 'block';
+                return;
+            }
+
+            // Size constraints
+            const minWidth = 0.5;
+            const maxWidth = 24.5;
+            const minHeight = 0.5;
+            const maxHeight = 12.375;
+
+            // Check size constraints
+            if (width < minWidth || width > maxWidth || height < minHeight || height > maxHeight) {
+                sizeValidation.textContent = 'Labels must normally be between 0.5" and 24.5" horizontally and 0.5" and 12.375" vertically.';
+                sizeValidation.className = 'size-validation-message error';
+                sizeValidation.style.display = 'block';
+                return;
+            }
+
+            // Shape-specific validation
+            if (selectedShape === 'rectangle' && width === height) {
+                sizeValidation.textContent = 'You selected Rectangle shape, width and height should not be same.';
+                sizeValidation.className = 'size-validation-message warning';
+                sizeValidation.style.display = 'block';
+                return;
+            }
+
+            if (selectedShape === 'square' && width !== height) {
+                sizeValidation.textContent = 'You selected Square shape, width and height should be the same.';
+                sizeValidation.className = 'size-validation-message warning';
+                sizeValidation.style.display = 'block';
+                return;
+            }
+
+            if (selectedShape === 'oval' && width === height) {
+                sizeValidation.textContent = 'You selected Oval shape, width and height should not be same.';
+                sizeValidation.className = 'size-validation-message warning';
+                sizeValidation.style.display = 'block';
+                return;
+            }
+
+            if (selectedShape === 'circle' && width !== height) {
+                sizeValidation.textContent = 'You selected Circle shape, width and height should be the same.';
+                sizeValidation.className = 'size-validation-message warning';
+                sizeValidation.style.display = 'block';
+                return;
+            }
+
+            // Check if dimensions seem unusual
+            const aspectRatio = width / height;
+            if (aspectRatio > 10 || aspectRatio < 0.1) {
+                sizeValidation.textContent = 'Are you sure you\'ve entered the right size? Please double-check your label width and height before proceeding.';
+                sizeValidation.className = 'size-validation-message warning';
+                sizeValidation.style.display = 'block';
+                return;
+            }
+
+            sizeValidation.style.display = 'none';
+        }
+
+        // Function to toggle corners section visibility
+        function toggleCornersSection() {
+            const selectedShape = document.querySelector('input[name="shape"]:checked').value;
+            if (selectedShape === 'rectangle' || selectedShape === 'square') {
+                cornersSection.style.display = 'block';
+            } else {
+                cornersSection.style.display = 'none';
+            }
+        }
+
+        // Function to toggle label size and diameter sections
+        function toggleSizeSections() {
+            const selectedShape = document.querySelector('input[name="shape"]:checked').value;
+            if (selectedShape === 'circle' || selectedShape === 'oval') {
+                labelSizeSection.style.display = 'none';
+                diameterSection.style.display = 'block';
+            } else {
+                labelSizeSection.style.display = 'block';
+                diameterSection.style.display = 'none';
+            }
+        }
+
+        // Round width/height inputs to nearest 1/32" on blur
+        function handleSizeInputBlur(input) {
+            const rounded = roundToNearest32nd(input.value);
+            if (rounded && rounded !== input.value) {
+                input.value = rounded;
+                validateLabelSize();
+            }
+        }
+
+        // Round diameter input to nearest hundredth on blur
+        function handleDiameterInputBlur(input) {
+            const rounded = roundToNearestHundredth(input.value);
+            if (rounded && rounded !== input.value) {
+                input.value = rounded;
+                validateDiameter();
+            }
+        }
+
+        // Validate input is numeric (float or int) - show error if invalid but don't block typing
+        function validateNumericInput(input) {
+            const value = input.value;
+            if (value === '') return true;
+            // Allow: numbers, decimals, negative sign at start
+            const regex = /^-?\d*\.?\d*$/;
+            return regex.test(value);
+        }
+
+        // Function to format text for display
+        function formatLabel(text) {
+            return text.split(/-|_/).map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        }
+
+        // Function to get selected printing option
+        function getSelectedPrinting() {
+            // Find the printing section (it comes before the material section)
+            const printingSection = document.querySelector('label.form-section-label');
+            let printingFilter = null;
+            
+            // Find the material-filter that belongs to the Printing section
+            document.querySelectorAll('.form-section').forEach(section => {
+                const label = section.querySelector('.form-section-label');
+                if (label && label.textContent.trim() === 'Printing') {
+                    printingFilter = section.querySelector('.material-filter');
+                }
+            });
+            
+            if (printingFilter) {
+                const activeBtn = printingFilter.querySelector('button.active');
+                return activeBtn ? activeBtn.textContent.trim() : '';
+            }
+            return '';
+        }
+
+        // Function to update summary panel with selected choices
+        function updateSummaryPanel() {
+            const summaryContainer = document.getElementById('selected-choices-summary');
+            const choices = [];
+
+            // Description
+            const description = document.getElementById('description')?.value.trim();
+            if (description) {
+                choices.push({ label: 'Description', value: description });
+            }
+
+            // Shape
+            const shape = document.querySelector('input[name="shape"]:checked');
+            if (shape) {
+                choices.push({ label: 'Shape', value: formatLabel(shape.value) });
+            }
+
+            // Size (Width x Height or Diameter)
+            const selectedShape = shape ? shape.value : '';
+            if (selectedShape === 'circle' || selectedShape === 'oval') {
+                const diameter = document.getElementById('diameter')?.value.trim();
+                if (diameter) {
+                    choices.push({ label: 'Diameter', value: `${diameter}"` });
+                }
+            } else {
+                const width = document.getElementById('label-width')?.value.trim();
+                const height = document.getElementById('label-height')?.value.trim();
+                if (width || height) {
+                    choices.push({ label: 'Size', value: `${width || ''}" × ${height || ''}"` });
+                }
+            }
+
+            // Corners (only for rectangle/square)
+            if (selectedShape === 'rectangle' || selectedShape === 'square') {
+                const corners = document.querySelector('input[name="corners"]:checked');
+                if (corners) {
+                    choices.push({ label: 'Corners', value: formatLabel(corners.value) });
+                }
+            }
+
+            // Cutting Die
+            const cuttingDie = document.getElementById('cutting-die')?.value;
+            if (cuttingDie) {
+                const cuttingDieSelect = document.getElementById('cutting-die');
+                const selectedOption = cuttingDieSelect.options[cuttingDieSelect.selectedIndex];
+                choices.push({ label: 'Cutting Die', value: selectedOption.text });
+            }
+
+            // Printing
+            const printing = getSelectedPrinting();
+            if (printing) {
+                choices.push({ label: 'Printing', value: printing });
+            }
+
+            // Material
+            const material = document.getElementById('material')?.value;
+            if (material) {
+                const materialSelect = document.getElementById('material');
+                const selectedOption = materialSelect.options[materialSelect.selectedIndex];
+                choices.push({ label: 'Material', value: selectedOption.text });
+            }
+
+            // Finish
+            const finish = document.getElementById('finish')?.value;
+            if (finish) {
+                const finishSelect = document.getElementById('finish');
+                const selectedOption = finishSelect.options[finishSelect.selectedIndex];
+                choices.push({ label: 'Finish', value: selectedOption.text });
+            }
+
+            // Application Method
+            const applicationMethod = document.querySelector('input[name="application-method"]:checked');
+            if (applicationMethod) {
+                const label = applicationMethod.closest('label').textContent.trim().replace(/\s*\([^)]*\)/, '');
+                choices.push({ label: 'Application Method', value: label });
+            }
+
+            // Unwind Direction
+            const unwindDirection = document.querySelector('input[name="unwind-direction"]:checked');
+            if (unwindDirection) {
+                const label = unwindDirection.closest('label').textContent.trim();
+                choices.push({ label: 'Unwind Direction', value: label });
+            }
+
+            // Versions and Total Quantity
+            const versions = document.getElementById('versions')?.value;
+            const totalQuantity = document.getElementById('total-quantity')?.value;
+            if (versions || totalQuantity) {
+                let qtyText = '';
+                if (versions) qtyText += `${versions} version${versions != 1 ? 's' : ''}`;
+                if (versions && totalQuantity) qtyText += ', ';
+                if (totalQuantity) qtyText += `${totalQuantity} total labels`;
+                if (qtyText) {
+                    choices.push({ label: 'Quantity', value: qtyText });
+                }
+            }
+
+            // Artwork Option
+            const artworkOption = document.querySelector('input[name="artwork-option"]:checked');
+            if (artworkOption) {
+                const value = artworkOption.value === 'upload-now' ? 'Upload artwork now' : 'Upload artwork later';
+                choices.push({ label: 'Artwork', value: value });
+            }
+
+            // Build HTML
+            if (choices.length === 0) {
+                summaryContainer.innerHTML = '<p class="summary-description" style="color: #6c757d; font-style: italic;">No selections made yet.</p>';
+                return;
+            }
+
+            let html = '';
+            choices.forEach((choice, index) => {
+                html += `
+                    <div class="summary-item" ${index > 0 ? 'style="margin-top: 1rem;"' : ''}>
+                        <span class="summary-label">${choice.label}</span>
+                        <p class="summary-description" style="margin-top: 0.25rem; margin-bottom: 0;">${choice.value}</p>
+                    </div>
+                `;
+            });
+
+            summaryContainer.innerHTML = html;
+        }
+
+        // Event listeners
+        shapeInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                toggleCornersSection();
+                toggleSizeSections();
+                validateLabelSize();
+                validateDiameter();
+                updateSummaryPanel();
+            });
+        });
+
+        // Width and Height input handlers
+        widthInput.addEventListener('input', function() {
+            if (validateNumericInput(this)) {
+                validateLabelSize();
+                updateSummaryPanel();
+            }
+        });
+        widthInput.addEventListener('blur', function() { 
+            handleSizeInputBlur(this);
+            updateSummaryPanel();
+        });
+        
+        heightInput.addEventListener('input', function() {
+            if (validateNumericInput(this)) {
+                validateLabelSize();
+                updateSummaryPanel();
+            }
+        });
+        heightInput.addEventListener('blur', function() { 
+            handleSizeInputBlur(this);
+            updateSummaryPanel();
+        });
+
+        // Diameter input handlers
+        diameterInput.addEventListener('input', function() {
+            if (validateNumericInput(this)) {
+                validateDiameter();
+                updateSummaryPanel();
+            }
+        });
+        diameterInput.addEventListener('blur', function() { 
+            handleDiameterInputBlur(this);
+            updateSummaryPanel();
+        });
+
+        // Corners change handler
+        document.querySelectorAll('input[name="corners"]').forEach(input => {
+            input.addEventListener('change', updateSummaryPanel);
+        });
+
+        // Cutting Die change handler
+        document.getElementById('cutting-die')?.addEventListener('change', updateSummaryPanel);
+
+        // Printing filter buttons
+        document.querySelectorAll('.form-section').forEach(section => {
+            const label = section.querySelector('.form-section-label');
+            if (label && label.textContent.trim() === 'Printing') {
+                const filterButtons = section.querySelectorAll('.material-filter button');
+                filterButtons.forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        // Remove active from all buttons in this filter group
+                        this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                        // Add active to clicked button
+                        this.classList.add('active');
+                        updateSummaryPanel();
+                    });
+                });
+            }
+        });
+
+        // Material change handler
+        document.getElementById('material')?.addEventListener('change', updateSummaryPanel);
+
+        // Finish change handler
+        document.getElementById('finish')?.addEventListener('change', updateSummaryPanel);
+
+        // Application Method change handler
+        document.querySelectorAll('input[name="application-method"]').forEach(input => {
+            input.addEventListener('change', updateSummaryPanel);
+        });
+
+        // Unwind Direction change handler
+        document.querySelectorAll('input[name="unwind-direction"]').forEach(input => {
+            input.addEventListener('change', updateSummaryPanel);
+        });
+
+        // Versions and Total Quantity change handlers
+        document.getElementById('versions')?.addEventListener('input', updateSummaryPanel);
+        document.getElementById('versions')?.addEventListener('change', updateSummaryPanel);
+        document.getElementById('total-quantity')?.addEventListener('input', updateSummaryPanel);
+        document.getElementById('total-quantity')?.addEventListener('change', updateSummaryPanel);
+
+        // Artwork option change handler
+        document.querySelectorAll('input[name="artwork-option"]').forEach(input => {
+            input.addEventListener('change', updateSummaryPanel);
+        });
+
+        // Description change handler
+        document.getElementById('description')?.addEventListener('input', updateSummaryPanel);
+        document.getElementById('description')?.addEventListener('change', updateSummaryPanel);
+
+        // Initial setup
+        toggleCornersSection();
+        toggleSizeSections();
+        validateLabelSize();
+        validateDiameter();
+        updateSummaryPanel();
+        
+        // Load materials from API on page load (runs asynchronously, doesn't block UI)
+        loadMaterials();
+    });
+</script>
+}
