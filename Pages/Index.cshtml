@@ -159,11 +159,9 @@
                 <div class="form-section-content">
                     <select class="form-control" id="finish" name="finish">
                         <option value="gloss-laminate">Gloss Laminate</option>
-                        <option value="soft-touch-matte">Soft Touch Matte Laminate</option>
-                        <option value="matte-laminate">Matte Laminate</option>
-                        <option value="thermal-transfer-gloss">Thermal Transfer Laminate (Gloss)</option>
-                        <option value="thermal-transfer-matte">Thermal Transfer Laminate (Matte)</option>
-                        <option value="natural">Natural (no finish)</option>
+                        <option value="matte-laminate">Matte Laminate</option>                        
+                        <option value="gloss-varnish">Gloss Varnish</option>
+                        <option value="matte- varnish">Matte Varnish</option>
                     </select>
                 </div>
             </div>
@@ -213,16 +211,11 @@
                 </div>
             </div>
 
-            <!-- Versions and Total Quantity Section -->
+            <!-- Total Quantity Section -->
             <div class="form-section">
                 <label class="form-section-label">Versions and Total Quantity</label>
                 <div class="form-section-content">
                     <div class="versions-input-group">
-                        <div class="input-group-item">
-                            <label for="versions">Versions</label>
-                            <input type="number" class="form-control" id="versions" name="versions" min="1" value="1">
-                            <div class="input-hint">Enter the number of label versions</div>
-                        </div>
                         <div class="input-group-item">
                             <label for="total-quantity">Total labels</label>
                             <input type="number" class="form-control" id="total-quantity" name="total-quantity" min="1">
@@ -242,6 +235,13 @@
                             <span>Upload artwork now</span>
                         </label>
                         <div class="option-hint">Upload your artwork in the next step</div>
+                    </div>
+                    <div class="radio-options" style="margin-top: 1rem;">
+                        <label class="radio-option">
+                            <input type="radio" name="artwork-option" value="artwork-not-ready">
+                            <span>Artwork is not ready</span>
+                        </label>
+                        <div class="option-hint">Artwork is not ready but will be for the order</div>
                     </div>
                     <div class="radio-options" style="margin-top: 1rem;">
                         <label class="radio-option">
@@ -695,8 +695,21 @@
             // Artwork Option
             const artworkOption = document.querySelector('input[name="artwork-option"]:checked');
             if (artworkOption) {
-                const value = artworkOption.value === 'upload-now' ? 'Upload artwork now' : 'Upload artwork later';
-                choices.push({ label: 'Artwork', value: value });
+                let artworkValue = '';
+                switch(artworkOption.value) {
+                    case 'upload-now':
+                        artworkValue = 'Upload artwork now';
+                        break;
+                    case 'artwork-not-ready':
+                        artworkValue = 'Artwork is not ready';
+                        break;
+                    case 'upload-later':
+                        artworkValue = 'Upload artwork later';
+                        break;
+                    default:
+                        artworkValue = artworkOption.value;
+                }
+                choices.push({ label: 'Artwork', value: artworkValue });
             }
 
             // Build HTML

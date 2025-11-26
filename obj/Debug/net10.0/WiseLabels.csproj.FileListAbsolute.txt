@@ -97,3 +97,4 @@ C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\WiseLabels.pdb
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\WiseLabels.genruntimeconfig.cache
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\ref\WiseLabels.dll
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Debug\net10.0\compressed\vnso7bc73p-{0}-t97auj8f1x-t97auj8f1x.gz
+C:\Users\pmenefee\source\WiseLink-Labels\bin\Debug\net10.0\appsettings.Production.json
