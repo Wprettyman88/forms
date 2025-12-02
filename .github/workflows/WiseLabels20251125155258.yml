@@ -46,9 +46,10 @@ jobs:
     - name: Azure Login
       uses: azure/login@v2
       with:
-        client-id: ${{ vars.WiseLabels20251125155258_CLIENT_ID_EBCE }}
-        tenant-id: ${{ vars.WiseLabels20251125155258_TENANT_ID_EBCE }}
-        subscription-id: ${{ vars.WiseLabels20251125155258_SUBSCRIPTION_ID_EBCE }}
+        client-id: ${{ secrets.WiseLabels20251125155258_CLIENT_ID_EBCE }}
+        client-secret: ${{ secrets.WiseLabels20251125155258_CLIENT_SECRET_EBCE }}
+        tenant-id: ${{ secrets.WiseLabels20251125155258_TENANT_ID_EBCE }}
+        subscription-id: ${{ secrets.WiseLabels20251125155258_SUBSCRIPTION_ID_EBCE }}
     - name: Deploy to Azure WebApp
       uses: azure/webapps-deploy@v2
       with:
