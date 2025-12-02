@@ -1,0 +1,109 @@
+@page
+@model WiseLabels.Pages.ConfirmModel
+@{
+    ViewData["Title"] = "Confirm Quote Request";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="mb-4">Confirm Your Quote Request</h1>
+            <p class="text-muted mb-4">Please review your information below. Click "Confirm" to submit or "Edit" to go back and make changes.</p>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Quote Details</h2>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        @if (!string.IsNullOrEmpty(Model.QuoteRequest.Description))
+                        {
+                            <dt class="col-sm-4">Description:</dt>
+                            <dd class="col-sm-8">@Model.QuoteRequest.Description</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.QuoteRequest.Shape))
+                        {
+                            <dt class="col-sm-4">Shape:</dt>
+                            <dd class="col-sm-8">@(Model.QuoteRequest.Shape.Length > 0 ? Model.QuoteRequest.Shape.Substring(0, 1).ToUpper() + Model.QuoteRequest.Shape.Substring(1) : Model.QuoteRequest.Shape)</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.QuoteRequest.Diameter))
+                        {
+                            <dt class="col-sm-4">Diameter:</dt>
+                            <dd class="col-sm-8">@Model.QuoteRequest.Diameter"</dd>
+                        }
+                        else if (!string.IsNullOrEmpty(Model.QuoteRequest.LabelWidth) || !string.IsNullOrEmpty(Model.QuoteRequest.LabelHeight))
+                        {
+                            <dt class="col-sm-4">Size:</dt>
+                            <dd class="col-sm-8">@(Model.QuoteRequest.LabelWidth ?? "")" × @(Model.QuoteRequest.LabelHeight ?? "")"</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.QuoteRequest.Corners))
+                        {
+                            <dt class="col-sm-4">Corners:</dt>
+                            <dd class="col-sm-8">@Model.QuoteRequest.Corners</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.QuoteRequest.CuttingDie))
+                        {
+                            <dt class="col-sm-4">Cutting Die:</dt>
+                            <dd class="col-sm-8">@Model.QuoteRequest.CuttingDie</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.QuoteRequest.Printing))
+                        {
+                            <dt class="col-sm-4">Printing:</dt>
+                            <dd class="col-sm-8">@Model.QuoteRequest.Printing</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.QuoteRequest.Material))
+                        {
+                            <dt class="col-sm-4">Material:</dt>
+                            <dd class="col-sm-8">@Model.QuoteRequest.Material</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.QuoteRequest.Finish))
+                        {
+                            <dt class="col-sm-4">Finish:</dt>
+                            <dd class="col-sm-8">@Model.QuoteRequest.Finish</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.QuoteRequest.ApplicationMethod))
+                        {
+                            <dt class="col-sm-4">Application Method:</dt>
+                            <dd class="col-sm-8">@Model.QuoteRequest.ApplicationMethod</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.QuoteRequest.UnwindDirection))
+                        {
+                            <dt class="col-sm-4">Unwind Direction:</dt>
+                            <dd class="col-sm-8">@Model.QuoteRequest.UnwindDirection</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.QuoteRequest.TotalQuantity))
+                        {
+                            <dt class="col-sm-4">Total Quantity:</dt>
+                            <dd class="col-sm-8">@Model.QuoteRequest.TotalQuantity</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.QuoteRequest.ArtworkOption))
+                        {
+                            <dt class="col-sm-4">Artwork:</dt>
+                            <dd class="col-sm-8">@Model.QuoteRequest.ArtworkOption</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+
+            <form method="post">
+                @Html.AntiForgeryToken()
+                <div class="d-flex gap-3 justify-content-end">
+                    <button type="submit" asp-page-handler="Edit" class="btn btn-outline-secondary btn-lg">Edit</button>
+                    <button type="submit" asp-page-handler="Confirm" class="btn btn-primary btn-lg">Confirm & Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

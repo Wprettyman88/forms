@@ -1,0 +1,35 @@
+namespace WiseLabels.Models
+{
+    public class QuoteRequest
+    {
+        // Display values (for confirmation page)
+        public string? Description { get; set; }
+        public string? Shape { get; set; }
+        public string? LabelWidth { get; set; }
+        public string? LabelHeight { get; set; }
+        public string? Diameter { get; set; }
+        public string? Corners { get; set; }
+        public string? CuttingDie { get; set; }
+        public string? Printing { get; set; }
+        public string? Material { get; set; }
+        public string? Finish { get; set; }
+        public string? ApplicationMethod { get; set; }
+        public string? UnwindDirection { get; set; }
+        public string? TotalQuantity { get; set; }
+        public string? ArtworkOption { get; set; }
+        
+        // Form values for restoration
+        public string? ShapeValue { get; set; }
+        public string? CornersValue { get; set; }
+        public string? MaterialValue { get; set; }
+        public string? FinishValue { get; set; }
+        public string? ApplicationMethodValue { get; set; }
+        public string? UnwindDirectionValue { get; set; }
+        public string? ArtworkOptionValue { get; set; }
+        public string? CuttingDieValue { get; set; }
+        public string? PrintingValue { get; set; }
+        
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+    }
+}
+

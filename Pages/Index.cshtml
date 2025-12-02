@@ -4,6 +4,14 @@
     ViewData["Title"] = "Home page";
 }
 
+@if (Model.SavedQuoteRequest != null)
+{
+    <script id="saved-quote-data" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SavedQuoteRequest))</script>
+    <script>
+        console.log('Saved quote data available on page:', @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SavedQuoteRequest)));
+    </script>
+}
+
 <div class="quote-page-container">
     <div class="quote-main-content">
         <div class="quote-form-header">
@@ -11,11 +19,12 @@
             <p class="quote-subtitle">Kick off your custom label journey here and watch your brand come to life.</p>
         </div>
 
-        <form class="quote-form">
+        <form class="quote-form" method="post" id="quote-form">
+            @Html.AntiForgeryToken()
             <div class="form-section">
                 <label class="form-section-label">Description</label>
                 <div class="form-section-content">
-                    <input type="text" class="form-control" id="description" name="description" min="5">
+                    <input type="text" class="form-control" id="description" name="description" min="5" value="@(Model.SavedQuoteRequest?.Description ?? "")">
                 </div>
             </div>
 
@@ -25,23 +34,23 @@
                 <div class="form-section-content">
                     <div class="shape-options">
                         <label class="shape-option">
-                            <input type="radio" name="shape" value="rectangle" checked>
+                            <input type="radio" name="shape" value="rectangle" @((Model.SavedQuoteRequest == null || Model.SavedQuoteRequest.ShapeValue == "rectangle" || (string.IsNullOrEmpty(Model.SavedQuoteRequest?.ShapeValue) && string.IsNullOrEmpty(Model.SavedQuoteRequest?.Shape))) ? "checked" : "")>
                             <span class="shape-label">Rectangle</span>
                         </label>
                         <label class="shape-option">
-                            <input type="radio" name="shape" value="square">
+                            <input type="radio" name="shape" value="square" @(Model.SavedQuoteRequest?.ShapeValue == "square" ? "checked" : "")>
                             <span class="shape-label">Square</span>
                         </label>
                         <label class="shape-option">
-                            <input type="radio" name="shape" value="circle">
+                            <input type="radio" name="shape" value="circle" @(Model.SavedQuoteRequest?.ShapeValue == "circle" ? "checked" : "")>
                             <span class="shape-label">Circle</span>
                         </label>
                         <label class="shape-option">
-                            <input type="radio" name="shape" value="oval">
+                            <input type="radio" name="shape" value="oval" @(Model.SavedQuoteRequest?.ShapeValue == "oval" ? "checked" : "")>
                             <span class="shape-label">Oval</span>
                         </label>
                         <label class="shape-option">
-                            <input type="radio" name="shape" value="special">
+                            <input type="radio" name="shape" value="special" @(Model.SavedQuoteRequest?.ShapeValue == "special" ? "checked" : "")>
                             <span class="shape-label">Special</span>
                         </label>
                     </div>
@@ -49,16 +58,16 @@
             </div>
 
             <!-- Corners Section -->
-            <div class="form-section" id="corners-section">
+            <div class="form-section" id="corners-section" style="display: @((Model.SavedQuoteRequest != null && (Model.SavedQuoteRequest.ShapeValue == "rectangle" || Model.SavedQuoteRequest.ShapeValue == "square")) ? "block" : "none");">
                 <label class="form-section-label">Corners</label>
                 <div class="form-section-content">
                     <div class="shape-options">
                         <label class="shape-option">
-                            <input type="radio" name="corners" value="rounded" checked>
+                            <input type="radio" name="corners" value="rounded" @((Model.SavedQuoteRequest == null || Model.SavedQuoteRequest.CornersValue == "rounded" || string.IsNullOrEmpty(Model.SavedQuoteRequest?.CornersValue)) ? "checked" : "")>
                             <span class="shape-label">Rounded</span>
                         </label>
                         <label class="shape-option">
-                            <input type="radio" name="corners" value="square">
+                            <input type="radio" name="corners" value="square" @(Model.SavedQuoteRequest?.CornersValue == "square" ? "checked" : "")>
                             <span class="shape-label">Square</span>
                         </label>
                     </div>
@@ -66,14 +75,14 @@
             </div>
 
             <!-- Label Size Section -->
-            <div class="form-section" id="label-size-section">
+            <div class="form-section" id="label-size-section" style="display: @((Model.SavedQuoteRequest != null && (Model.SavedQuoteRequest.ShapeValue == "circle" || Model.SavedQuoteRequest.ShapeValue == "oval")) ? "none" : "block");">
                 <label class="form-section-label">Label Size</label>
                 <div class="form-section-content">
                     <div class="label-size-inputs">
                         <div class="size-input-group">
                             <label for="label-width">Width</label>
                             <div class="input-with-unit">
-                                <input type="text" class="form-control" id="label-width" name="label-width" placeholder="" inputmode="decimal">
+                                <input type="text" class="form-control" id="label-width" name="label-width" placeholder="" inputmode="decimal" value="@(Model.SavedQuoteRequest?.LabelWidth ?? "")">
                                 <span class="input-unit">"</span>
                             </div>
                         </div>
@@ -81,7 +90,7 @@
                         <div class="size-input-group">
                             <label for="label-height">Height</label>
                             <div class="input-with-unit">
-                                <input type="text" class="form-control" id="label-height" name="label-height" placeholder="" inputmode="decimal">
+                                <input type="text" class="form-control" id="label-height" name="label-height" placeholder="" inputmode="decimal" value="@(Model.SavedQuoteRequest?.LabelHeight ?? "")">
                                 <span class="input-unit">"</span>
                             </div>
                         </div>
@@ -91,12 +100,12 @@
             </div>
 
             <!-- Diameter Section -->
-            <div class="form-section" id="diameter-section" style="display: none;">
+            <div class="form-section" id="diameter-section" style="display: @((Model.SavedQuoteRequest != null && (Model.SavedQuoteRequest.ShapeValue == "circle" || Model.SavedQuoteRequest.ShapeValue == "oval")) ? "block" : "none");">
                 <label class="form-section-label">Diameter</label>
                 <div class="form-section-content">
                     <div class="diameter-input-group">
                         <div class="input-with-unit">
-                            <input type="text" class="form-control" id="diameter" name="diameter" placeholder="" inputmode="decimal" step="0.01">
+                            <input type="text" class="form-control" id="diameter" name="diameter" placeholder="" inputmode="decimal" step="0.01" value="@(Model.SavedQuoteRequest?.Diameter ?? "")">
                             <span class="input-unit">"</span>
                         </div>
                     </div>
@@ -110,8 +119,21 @@
                 <label class="form-section-label">Cutting Die</label>
                 <div class="form-section-content">
                     <select class="form-control" id="cutting-die" name="cutting-die">
-                        <option value="">Existing die size</option>
-                        <option value="new">Custom die size</option>                        
+                        @if (string.IsNullOrEmpty(Model.SavedQuoteRequest?.CuttingDieValue))
+                        {
+                            <option value="" selected>Existing die size</option>
+                            <option value="new">Custom die size</option>
+                        }
+                        else if (Model.SavedQuoteRequest.CuttingDieValue == "new")
+                        {
+                            <option value="">Existing die size</option>
+                            <option value="new" selected>Custom die size</option>
+                        }
+                        else
+                        {
+                            <option value="">Existing die size</option>
+                            <option value="new">Custom die size</option>
+                        }
                     </select>
                 </div>
             </div>
@@ -121,11 +143,15 @@
                 <label class="form-section-label">Printing</label>
                 <div class="form-section-content">
                     <div class="material-filter">
-                        <button type="button" class="filter-btn active" data-filter="all">Poocess Color - White + CMYK - Digital</button>
-                        <button type="button" class="filter-btn" data-filter="all">Spot Color 1 Standard Ink</button>
-                        <button type="button" class="filter-btn" data-filter="all">Spot Color 2 Standard Ink</button>
-                        <button type="button" class="filter-btn" data-filter="all">Process Color - Digital</button>
-                        <button type="button" class="filter-btn" data-filter="all">Blank Ink Only - Digital</button>
+                        @{
+                            var printingValue = Model.SavedQuoteRequest?.PrintingValue ?? "";
+                            var printingText = Model.SavedQuoteRequest?.Printing ?? "";
+                        }
+                        <button type="button" class="filter-btn @(printingText == "Poocess Color - White + CMYK - Digital" || (string.IsNullOrEmpty(printingText) && string.IsNullOrEmpty(printingValue)) ? "active" : "")" data-filter="all">Poocess Color - White + CMYK - Digital</button>
+                        <button type="button" class="filter-btn @(printingText == "Spot Color 1 Standard Ink" ? "active" : "")" data-filter="all">Spot Color 1 Standard Ink</button>
+                        <button type="button" class="filter-btn @(printingText == "Spot Color 2 Standard Ink" ? "active" : "")" data-filter="all">Spot Color 2 Standard Ink</button>
+                        <button type="button" class="filter-btn @(printingText == "Process Color - Digital" ? "active" : "")" data-filter="all">Process Color - Digital</button>
+                        <button type="button" class="filter-btn @(printingText == "Blank Ink Only - Digital" ? "active" : "")" data-filter="all">Blank Ink Only - Digital</button>
                     </div>
                 </div>
             </div>
@@ -146,7 +172,7 @@
                         <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                         <span>Loading materials ...</span>
                     </div>
-                    <select class="form-control" id="material" name="material" size="10">
+                    <select class="form-control" id="material" name="material" size="10" data-saved-value="@(Model.SavedQuoteRequest?.MaterialValue ?? "")">
                         <option value="">Loading materials...</option>
                     </select>
                     <div id="material-error" class="size-validation-message error" style="display: none;"></div>
@@ -158,10 +184,45 @@
                 <label class="form-section-label">Finish</label>
                 <div class="form-section-content">
                     <select class="form-control" id="finish" name="finish">
-                        <option value="gloss-laminate">Gloss Laminate</option>
-                        <option value="matte-laminate">Matte Laminate</option>                        
-                        <option value="gloss-varnish">Gloss Varnish</option>
-                        <option value="matte- varnish">Matte Varnish</option>
+                        @{
+                            var finishValue = Model.SavedQuoteRequest?.FinishValue ?? "";
+                            if (string.IsNullOrEmpty(finishValue) && string.IsNullOrEmpty(Model.SavedQuoteRequest?.Finish))
+                            {
+                                finishValue = "gloss-laminate";
+                            }
+                        }
+                        @if (finishValue == "gloss-laminate")
+                        {
+                            <option value="gloss-laminate" selected>Gloss Laminate</option>
+                        }
+                        else
+                        {
+                            <option value="gloss-laminate">Gloss Laminate</option>
+                        }
+                        @if (finishValue == "matte-laminate")
+                        {
+                            <option value="matte-laminate" selected>Matte Laminate</option>
+                        }
+                        else
+                        {
+                            <option value="matte-laminate">Matte Laminate</option>
+                        }
+                        @if (finishValue == "gloss-varnish")
+                        {
+                            <option value="gloss-varnish" selected>Gloss Varnish</option>
+                        }
+                        else
+                        {
+                            <option value="gloss-varnish">Gloss Varnish</option>
+                        }
+                        @if (finishValue == "matte- varnish")
+                        {
+                            <option value="matte- varnish" selected>Matte Varnish</option>
+                        }
+                        else
+                        {
+                            <option value="matte- varnish">Matte Varnish</option>
+                        }
                     </select>
                 </div>
             </div>
@@ -172,11 +233,11 @@
                 <div class="form-section-content">
                     <div class="radio-options">
                         <label class="radio-option">
-                            <input type="radio" name="application-method" value="hand" checked>
+                            <input type="radio" name="application-method" value="hand" @((Model.SavedQuoteRequest == null || Model.SavedQuoteRequest.ApplicationMethodValue == "hand" || string.IsNullOrEmpty(Model.SavedQuoteRequest?.ApplicationMethodValue)) ? "checked" : "")>
                             <span>Hand</span>
                         </label>
                         <label class="radio-option">
-                            <input type="radio" name="application-method" value="machine">
+                            <input type="radio" name="application-method" value="machine" @(Model.SavedQuoteRequest?.ApplicationMethodValue == "machine" ? "checked" : "")>
                             <span>Machine <span class="option-note"></span></span>
                         </label>
                     </div>
@@ -192,19 +253,19 @@
                 <div class="form-section-content">
                     <div class="radio-options">
                         <label class="radio-option">
-                            <input type="radio" name="unwind-direction" value="top-off-first" checked>
+                            <input type="radio" name="unwind-direction" value="top-off-first" @((Model.SavedQuoteRequest == null || Model.SavedQuoteRequest.UnwindDirectionValue == "top-off-first" || string.IsNullOrEmpty(Model.SavedQuoteRequest?.UnwindDirectionValue)) ? "checked" : "")>
                             <span>Top off first (#1)</span>
                         </label>
                         <label class="radio-option">
-                            <input type="radio" name="unwind-direction" value="bottom-off-first">
+                            <input type="radio" name="unwind-direction" value="bottom-off-first" @(Model.SavedQuoteRequest?.UnwindDirectionValue == "bottom-off-first" ? "checked" : "")>
                             <span>Bottom off first (#2)</span>
                         </label>
                         <label class="radio-option">
-                            <input type="radio" name="unwind-direction" value="right-off-first">
+                            <input type="radio" name="unwind-direction" value="right-off-first" @(Model.SavedQuoteRequest?.UnwindDirectionValue == "right-off-first" ? "checked" : "")>
                             <span>Right off first (#3)</span>
                         </label>
                         <label class="radio-option">
-                            <input type="radio" name="unwind-direction" value="left-off-first">
+                            <input type="radio" name="unwind-direction" value="left-off-first" @(Model.SavedQuoteRequest?.UnwindDirectionValue == "left-off-first" ? "checked" : "")>
                             <span>Left off first (#4)</span>
                         </label>
                     </div>
@@ -218,7 +279,7 @@
                     <div class="versions-input-group">
                         <div class="input-group-item">
                             <label for="total-quantity">Total labels</label>
-                            <input type="number" class="form-control" id="total-quantity" name="total-quantity" min="1">
+                            <input type="number" class="form-control" id="total-quantity" name="total-quantity" min="1" value="@(Model.SavedQuoteRequest?.TotalQuantity ?? "")">
                             <div class="input-hint">Of all designs combined</div>
                         </div>
                     </div>
@@ -231,21 +292,21 @@
                 <div class="form-section-content">
                     <div class="radio-options">
                         <label class="radio-option">
-                            <input type="radio" name="artwork-option" value="upload-now" checked>
+                            <input type="radio" name="artwork-option" value="upload-now" @((Model.SavedQuoteRequest == null || Model.SavedQuoteRequest.ArtworkOptionValue == "upload-now" || string.IsNullOrEmpty(Model.SavedQuoteRequest?.ArtworkOptionValue)) ? "checked" : "")>
                             <span>Upload artwork now</span>
                         </label>
                         <div class="option-hint">Upload your artwork in the next step</div>
                     </div>
                     <div class="radio-options" style="margin-top: 1rem;">
                         <label class="radio-option">
-                            <input type="radio" name="artwork-option" value="artwork-not-ready">
+                            <input type="radio" name="artwork-option" value="artwork-not-ready" @(Model.SavedQuoteRequest?.ArtworkOptionValue == "artwork-not-ready" ? "checked" : "")>
                             <span>Artwork is not ready</span>
                         </label>
                         <div class="option-hint">Artwork is not ready but will be for the order</div>
                     </div>
                     <div class="radio-options" style="margin-top: 1rem;">
                         <label class="radio-option">
-                            <input type="radio" name="artwork-option" value="upload-later">
+                            <input type="radio" name="artwork-option" value="upload-later" @(Model.SavedQuoteRequest?.ArtworkOptionValue == "upload-later" ? "checked" : "")>
                             <span>Upload artwork later</span>
                         </label>
                         <div class="option-hint">Supply files for your order later when you are ready</div>
@@ -267,8 +328,7 @@
             </div>
 
             <div class="summary-actions">
-                <button class="btn btn-primary btn-lg w-100 mb-2">Send Order</button>
-                <button class="btn btn-outline-primary btn-lg w-100">Send Quote</button>
+                <button type="button" class="btn btn-primary btn-lg w-100 mb-2" id="send-quote-btn">Send Quote</button>
             </div>
         </div>
     </div>
@@ -380,6 +440,16 @@
                 option.textContent = description;
                 materialSelect.appendChild(option);
             });
+
+            // Restore saved material value if available (after options are populated)
+            const savedMaterialValue = materialSelect.getAttribute('data-saved-value');
+            if (savedMaterialValue) {
+                // Try to find and select the option with this value
+                const optionToSelect = Array.from(materialSelect.options).find(opt => opt.value === savedMaterialValue);
+                if (optionToSelect) {
+                    materialSelect.value = savedMaterialValue;
+                }
+            }
 
             // Update summary panel if material was already selected
             updateSummaryPanel();
@@ -600,11 +670,12 @@
             const summaryContainer = document.getElementById('selected-choices-summary');
             const choices = [];
 
-            // Description
+            // Description - always show in summary
             const description = document.getElementById('description')?.value.trim();
-            if (description) {
-                choices.push({ label: 'Description', value: description });
-            }
+            choices.push({ 
+                label: 'Description', 
+                value: description || 'Not specified' 
+            });
 
             // Shape
             const shape = document.querySelector('input[name="shape"]:checked');
@@ -842,7 +913,366 @@
         updateSummaryPanel();
         
         // Load materials from API on page load (runs asynchronously, doesn't block UI)
-        loadMaterials();
+        // After materials load, restore form data if needed (specifically for material dropdown)
+        loadMaterials().then(() => {
+            // Restore form data after materials are loaded (material dropdown needs options first)
+            setTimeout(() => restoreFormData(), 300);
+        });
+
+        // Restore form data if returning from confirmation page
+        function restoreFormData() {
+            const savedDataScript = document.getElementById('saved-quote-data');
+            if (!savedDataScript) {
+                console.log('No saved quote data found - this is a new form');
+                return;
+            }
+
+            try {
+                const savedData = JSON.parse(savedDataScript.textContent);
+                console.log('Restoring form data:', savedData);
+                
+                // Restore description
+                if (savedData.description) {
+                    document.getElementById('description').value = savedData.description;
+                }
+
+                // Restore shape
+                if (savedData.shapeValue) {
+                    const shapeRadio = document.querySelector(`input[name="shape"][value="${savedData.shapeValue}"]`);
+                    if (shapeRadio) {
+                        shapeRadio.checked = true;
+                        toggleCornersSection();
+                        toggleSizeSections();
+                    }
+                } else if (savedData.shape) {
+                    // Fallback: try to match by display text
+                    const shapeValue = savedData.shape.toLowerCase();
+                    const shapeRadio = document.querySelector(`input[name="shape"][value="${shapeValue}"]`);
+                    if (shapeRadio) {
+                        shapeRadio.checked = true;
+                        toggleCornersSection();
+                        toggleSizeSections();
+                    }
+                }
+
+                // Restore size (width/height or diameter)
+                if (savedData.diameter) {
+                    document.getElementById('diameter').value = savedData.diameter;
+                } else {
+                    if (savedData.labelWidth) {
+                        document.getElementById('label-width').value = savedData.labelWidth;
+                    }
+                    if (savedData.labelHeight) {
+                        document.getElementById('label-height').value = savedData.labelHeight;
+                    }
+                }
+
+                // Restore corners
+                if (savedData.cornersValue) {
+                    const cornersRadio = document.querySelector(`input[name="corners"][value="${savedData.cornersValue}"]`);
+                    if (cornersRadio) {
+                        cornersRadio.checked = true;
+                    }
+                } else if (savedData.corners) {
+                    // Fallback: try to match by display text
+                    const cornersValue = savedData.corners.toLowerCase();
+                    const cornersRadio = document.querySelector(`input[name="corners"][value="${cornersValue}"]`);
+                    if (cornersRadio) {
+                        cornersRadio.checked = true;
+                    }
+                }
+
+                // Restore cutting die
+                if (savedData.cuttingDieValue) {
+                    document.getElementById('cutting-die').value = savedData.cuttingDieValue;
+                } else if (savedData.cuttingDie) {
+                    // Fallback: try to find option by text
+                    const cuttingDieSelect = document.getElementById('cutting-die');
+                    for (let option of cuttingDieSelect.options) {
+                        if (option.text === savedData.cuttingDie) {
+                            option.selected = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Restore printing
+                if (savedData.printingValue || savedData.printing) {
+                    const printingText = savedData.printingValue || savedData.printing;
+                    // Find and activate the printing button that matches
+                    document.querySelectorAll('.form-section').forEach(section => {
+                        const label = section.querySelector('.form-section-label');
+                        if (label && label.textContent.trim() === 'Printing') {
+                            const buttons = section.querySelectorAll('.material-filter button');
+                            buttons.forEach(btn => {
+                                if (btn.textContent.trim() === printingText) {
+                                    btn.classList.add('active');
+                                } else {
+                                    btn.classList.remove('active');
+                                }
+                            });
+                        }
+                    });
+                }
+
+                // Restore material - wait for materials to load first
+                if (savedData.materialValue) {
+                    const restoreMaterial = () => {
+                        const materialSelect = document.getElementById('material');
+                        if (materialSelect) {
+                            materialSelect.value = savedData.materialValue;
+                        }
+                    };
+                    
+                    // Wait a bit for materials to load, then restore
+                    setTimeout(restoreMaterial, 500);
+                    setTimeout(restoreMaterial, 1500);
+                    setTimeout(restoreMaterial, 3000);
+                } else if (savedData.material) {
+                    // Fallback: try to find by text
+                    const restoreMaterial = () => {
+                        const materialSelect = document.getElementById('material');
+                        if (materialSelect && materialSelect.options.length > 1) {
+                            for (let option of materialSelect.options) {
+                                if (option.text === savedData.material) {
+                                    option.selected = true;
+                                    break;
+                                }
+                            }
+                        }
+                    };
+                    setTimeout(restoreMaterial, 500);
+                    setTimeout(restoreMaterial, 1500);
+                    setTimeout(restoreMaterial, 3000);
+                }
+
+                // Restore finish
+                if (savedData.finishValue) {
+                    document.getElementById('finish').value = savedData.finishValue;
+                } else if (savedData.finish) {
+                    // Fallback: try to find by text
+                    const finishSelect = document.getElementById('finish');
+                    for (let option of finishSelect.options) {
+                        if (option.text === savedData.finish) {
+                            option.selected = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Restore application method
+                if (savedData.applicationMethodValue) {
+                    const appMethodRadio = document.querySelector(`input[name="application-method"][value="${savedData.applicationMethodValue}"]`);
+                    if (appMethodRadio) {
+                        appMethodRadio.checked = true;
+                    }
+                } else if (savedData.applicationMethod) {
+                    // Fallback: try to match by display text
+                    const appMethodValue = savedData.applicationMethod.toLowerCase();
+                    const appMethodRadio = document.querySelector(`input[name="application-method"][value="${appMethodValue}"]`);
+                    if (appMethodRadio) {
+                        appMethodRadio.checked = true;
+                    }
+                }
+
+                // Restore unwind direction
+                if (savedData.unwindDirectionValue) {
+                    const unwindRadio = document.querySelector(`input[name="unwind-direction"][value="${savedData.unwindDirectionValue}"]`);
+                    if (unwindRadio) {
+                        unwindRadio.checked = true;
+                    }
+                } else if (savedData.unwindDirection) {
+                    // Fallback: try to match by display text
+                    const unwindRadios = document.querySelectorAll('input[name="unwind-direction"]');
+                    unwindRadios.forEach(radio => {
+                        const label = radio.closest('label');
+                        if (label && label.textContent.trim() === savedData.unwindDirection) {
+                            radio.checked = true;
+                        }
+                    });
+                }
+
+                // Restore total quantity
+                if (savedData.totalQuantity) {
+                    document.getElementById('total-quantity').value = savedData.totalQuantity;
+                }
+
+                // Restore artwork option
+                if (savedData.artworkOptionValue) {
+                    const artworkRadio = document.querySelector(`input[name="artwork-option"][value="${savedData.artworkOptionValue}"]`);
+                    if (artworkRadio) {
+                        artworkRadio.checked = true;
+                    }
+                } else if (savedData.artworkOption) {
+                    // Fallback: try to match by display text
+                    let artworkValue = '';
+                    if (savedData.artworkOption === 'Upload artwork now') {
+                        artworkValue = 'upload-now';
+                    } else if (savedData.artworkOption === 'Artwork is not ready') {
+                        artworkValue = 'artwork-not-ready';
+                    } else if (savedData.artworkOption === 'Upload artwork later') {
+                        artworkValue = 'upload-later';
+                    }
+                    
+                    if (artworkValue) {
+                        const artworkRadio = document.querySelector(`input[name="artwork-option"][value="${artworkValue}"]`);
+                        if (artworkRadio) {
+                            artworkRadio.checked = true;
+                        }
+                    }
+                }
+
+                // Update summary panel after restoring
+                setTimeout(() => {
+                    updateSummaryPanel();
+                    console.log('Form data restored successfully');
+                }, 500);
+            } catch (error) {
+                console.error('Error restoring form data:', error);
+            }
+        }
+
+        // Restore form data if returning from confirmation page
+        // Try immediately first (most fields don't need materials to load)
+        restoreFormData();
+        
+        // Also try after a short delay to catch any timing issues
+        setTimeout(() => restoreFormData(), 100);
+        
+        // And again after materials potentially load
+        setTimeout(() => restoreFormData(), 2000);
+
+        // Form submission handler
+        document.getElementById('send-quote-btn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Collect all form data
+            const formData = new FormData(document.getElementById('quote-form'));
+            
+            // Get all form values (including display text for dropdowns)
+            const materialSelect = document.getElementById('material');
+            const finishSelect = document.getElementById('finish');
+            const cuttingDieSelect = document.getElementById('cutting-die');
+            
+            const getSelectedText = (selectElement) => {
+                if (!selectElement || !selectElement.value) return '';
+                const selectedOption = selectElement.options[selectElement.selectedIndex];
+                return selectedOption ? selectedOption.text : '';
+            };
+
+            const getApplicationMethodText = () => {
+                const selected = document.querySelector('input[name="application-method"]:checked');
+                if (!selected) return '';
+                const label = selected.closest('label');
+                return label ? label.textContent.trim().replace(/\s*\([^)]*\)/, '') : '';
+            };
+
+            const getUnwindDirectionText = () => {
+                const selected = document.querySelector('input[name="unwind-direction"]:checked');
+                if (!selected) return '';
+                const label = selected.closest('label');
+                return label ? label.textContent.trim() : '';
+            };
+
+            const getArtworkOptionText = () => {
+                const selected = document.querySelector('input[name="artwork-option"]:checked');
+                if (!selected) return '';
+                const value = selected.value;
+                switch(value) {
+                    case 'upload-now': return 'Upload artwork now';
+                    case 'artwork-not-ready': return 'Artwork is not ready';
+                    case 'upload-later': return 'Upload artwork later';
+                    default: return value;
+                }
+            };
+
+            const getShapeText = () => {
+                const selected = document.querySelector('input[name="shape"]:checked');
+                if (!selected) return '';
+                const value = selected.value;
+                return value.charAt(0).toUpperCase() + value.slice(1);
+            };
+
+            // Get actual form values (for restoration)
+            const shapeValue = document.querySelector('input[name="shape"]:checked')?.value || '';
+            const cornersValue = document.querySelector('input[name="corners"]:checked')?.value || '';
+            const applicationMethodValue = document.querySelector('input[name="application-method"]:checked')?.value || '';
+            const unwindDirectionValue = document.querySelector('input[name="unwind-direction"]:checked')?.value || '';
+            const artworkOptionValue = document.querySelector('input[name="artwork-option"]:checked')?.value || '';
+            const materialValue = materialSelect?.value || '';
+            const finishValue = finishSelect?.value || '';
+            const cuttingDieValue = cuttingDieSelect?.value || '';
+            
+            // Get printing button text
+            let printingValue = '';
+            document.querySelectorAll('.form-section').forEach(section => {
+                const label = section.querySelector('.form-section-label');
+                if (label && label.textContent.trim() === 'Printing') {
+                    const activeBtn = section.querySelector('.material-filter button.active');
+                    if (activeBtn) {
+                        printingValue = activeBtn.textContent.trim();
+                    }
+                }
+            });
+
+            const quoteData = {
+                // Display values (for confirmation page)
+                description: document.getElementById('description')?.value || '',
+                shape: getShapeText(),
+                labelWidth: document.getElementById('label-width')?.value || '',
+                labelHeight: document.getElementById('label-height')?.value || '',
+                diameter: document.getElementById('diameter')?.value || '',
+                corners: cornersValue ? cornersValue.charAt(0).toUpperCase() + cornersValue.slice(1) : '',
+                cuttingDie: getSelectedText(cuttingDieSelect),
+                printing: getSelectedPrinting() || printingValue,
+                material: getSelectedText(materialSelect),
+                finish: getSelectedText(finishSelect),
+                applicationMethod: getApplicationMethodText(),
+                unwindDirection: getUnwindDirectionText(),
+                totalQuantity: document.getElementById('total-quantity')?.value || '',
+                artworkOption: getArtworkOptionText(),
+                
+                // Form values (for restoration)
+                shapeValue: shapeValue,
+                cornersValue: cornersValue,
+                materialValue: materialValue,
+                finishValue: finishValue,
+                applicationMethodValue: applicationMethodValue,
+                unwindDirectionValue: unwindDirectionValue,
+                artworkOptionValue: artworkOptionValue,
+                cuttingDieValue: cuttingDieValue,
+                printingValue: printingValue
+            };
+
+            // Submit form via POST to Index page handler
+            const submitForm = document.createElement('form');
+            submitForm.method = 'POST';
+            submitForm.action = '/Index?handler=Submit';
+            
+            // Add anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (!token) {
+                // Create token if it doesn't exist (ASP.NET Core will generate it)
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                submitForm.appendChild(tokenInput);
+            } else {
+                submitForm.appendChild(token.cloneNode(true));
+            }
+
+            // Add all quote data as hidden inputs (using camelCase to match model)
+            Object.keys(quoteData).forEach(key => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = quoteData[key] || '';
+                submitForm.appendChild(input);
+            });
+
+            document.body.appendChild(submitForm);
+            submitForm.submit();
+        });
     });
 </script>
 }

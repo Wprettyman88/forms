@@ -3,6 +3,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<WiseLabels.Services.IQuoteService, WiseLabels.Services.QuoteService>();
 
 var app = builder.Build();
 
