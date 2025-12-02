@@ -46,10 +46,9 @@ jobs:
     - name: Azure Login
       uses: azure/login@v2
       with:
-        client-id: ${{ secrets.WiseLabels20251125155258_CLIENT_ID_EBCE }}
-        client-secret: ${{ secrets.WiseLabels20251125155258_CLIENT_SECRET_EBCE }}
-        tenant-id: ${{ secrets.WiseLabels20251125155258_TENANT_ID_EBCE }}
-        subscription-id: ${{ secrets.WiseLabels20251125155258_SUBSCRIPTION_ID_EBCE }}
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}        
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     - name: Deploy to Azure WebApp
       uses: azure/webapps-deploy@v2
       with:
