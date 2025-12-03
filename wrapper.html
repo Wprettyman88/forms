@@ -1,0 +1,184 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Labels - Instant Quote</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: #2563eb;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+            .nav a {
+                color: #64748b;
+                text-decoration: none;
+                font-weight: 500;
+                transition: color 0.2s;
+            }
+
+                .nav a:hover {
+                    color: #2563eb;
+                }
+
+        .iframe-container {
+            flex: 1;
+            position: relative;
+            background: white;
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .error-message {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+        }
+
+            .error-message h3 {
+                color: #ef4444;
+                margin-bottom: 1rem;
+            }
+
+            .error-message p {
+                color: #64748b;
+                line-height: 1.6;
+                margin-bottom: 1rem;
+            }
+
+            .error-message code {
+                background: #f1f5f9;
+                padding: 0.25rem 0.5rem;
+                border-radius: 4px;
+                font-size: 0.9rem;
+            }
+
+        @media (max-width: 768px) {
+            .nav {
+                display: none;
+            }
+
+            .header {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon">YB</div>
+            <div class="logo-text">Your Brand</div>
+        </div>
+        <nav class="nav">
+            <a href="#products">Products</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
+        </nav>
+    </div>
+
+    <div class="iframe-container">
+
+        <iframe id="labelFrame"
+                src="https://crimson-boat-b71a.pmenefee.workers.dev/"
+                title="Label Quote Tool"
+                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads"></iframe>
+
+        <div class="error-message" id="errorMessage">
+            <h3>⚠️ Configuration Required</h3>
+            <p>The embedded application cannot load due to security headers. To enable white-label embedding:</p>
+            <p><strong>Add this to your Azure Web App configuration:</strong></p>
+            <p><code>X-Frame-Options: ALLOWALL</code></p>
+            <p>Or set specific domains in Content-Security-Policy</p>
+        </div>
+    </div>
+
+    <script>
+        // Check if iframe loads successfully
+        const iframe = document.getElementById('labelFrame');
+        const errorMessage = document.getElementById('errorMessage');
+
+        iframe.addEventListener('error', () => {
+            errorMessage.style.display = 'block';
+        });
+
+        // Timeout check for blocked iframe
+        setTimeout(() => {
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                if (!iframeDoc) {
+                    errorMessage.style.display = 'block';
+                }
+            } catch (e) {
+                // Cross-origin restriction - this is expected
+                // The iframe might still load despite this error
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
