@@ -44,7 +44,7 @@ namespace WiseLabels.Pages.Api
             {
                 // Get credentials from configuration
                 var oauthUrl = _configuration["Cerm:OAuthUrl"] ?? "https://brandmark-api.cerm.be/oauth/token";
-                var materialsUrl = _configuration["Cerm:MaterialsUrl"] ?? "https://brandmark-api.cerm.be/parameter-api/v1/calculation/finishing-types";
+                var materialsUrl = _configuration["Cerm:MaterialsUrl"] ?? "https://brandmark-api.cerm.be/parameter-api/v1/calculation/substrates";
                 var username = _configuration["Cerm:Username"];
                 var password = _configuration["Cerm:Password"];
                 var clientId = _configuration["Cerm:ClientId"];

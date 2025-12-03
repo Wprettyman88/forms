@@ -147,7 +147,7 @@
                             var printingValue = Model.SavedQuoteRequest?.PrintingValue ?? "";
                             var printingText = Model.SavedQuoteRequest?.Printing ?? "";
                         }
-                        <button type="button" class="filter-btn @(printingText == "Poocess Color - White + CMYK - Digital" || (string.IsNullOrEmpty(printingText) && string.IsNullOrEmpty(printingValue)) ? "active" : "")" data-filter="all">Poocess Color - White + CMYK - Digital</button>
+                        <button type="button" class="filter-btn @(printingText == "Process Color - White + CMYK - Digital" || (string.IsNullOrEmpty(printingText) && string.IsNullOrEmpty(printingValue)) ? "active" : "")" data-filter="all">Poocess Color - White + CMYK - Digital</button>
                         <button type="button" class="filter-btn @(printingText == "Spot Color 1 Standard Ink" ? "active" : "")" data-filter="all">Spot Color 1 Standard Ink</button>
                         <button type="button" class="filter-btn @(printingText == "Spot Color 2 Standard Ink" ? "active" : "")" data-filter="all">Spot Color 2 Standard Ink</button>
                         <button type="button" class="filter-btn @(printingText == "Process Color - Digital" ? "active" : "")" data-filter="all">Process Color - Digital</button>
@@ -158,7 +158,7 @@
 
             <!-- Material Section -->
             <div class="form-section">
-                <label class="form-section-label">Material & Finish</label>
+                <label class="form-section-label">Materials</label>
                 <div class="form-section-content">
                     <!--
                     <div class="material-filter">

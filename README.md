@@ -4,7 +4,7 @@ Label Orders.
 Label Invoices.  
 
 ## Deployment
-[Production](https://wiselabels20251125155258-btbvc6cwdwetbjdc.canadacentral-01.azurewebsites.net/)
+[Production](https://wiselabels20251125155258-btbvc6cwdwetbjdc.canadacentral-01.azurewebsites.net/)7e
 [Development](https://wiselabels2025112515525-wiselabels-dev-f7bqa3fsamakdpcs.canadacentral-01.azurewebsites.net/)
 
 ## Software Product Requirements
@@ -17,3 +17,11 @@ Label Invoices.
 
 3. **End Users - White Label**: Automatic authentication in the background to a default web user for use with reseller-branded white label websites. Records both the reseller and end user company and contact information.
 
+
+### ToDo:
+1. Add contact information fields for resellers and end users during the quote/order/invoice process.
+2. Store contact information with the quote/order/invoice records. 
+3. Display contact information on generated documents (quotes, orders, invoices).
+4. Printing needs to come from CERM.
+5. Filter Materials.
+6. Change Materials to use substrates API from CERM.
