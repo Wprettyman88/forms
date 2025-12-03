@@ -4,6 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<WiseLabels.Services.IQuoteService, WiseLabels.Services.QuoteService>();
+builder.Services.AddScoped<WiseLabels.Services.IEmailService, WiseLabels.Services.EmailService>();
 
 var app = builder.Build();
 

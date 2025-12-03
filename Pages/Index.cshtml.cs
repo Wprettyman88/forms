@@ -40,6 +40,11 @@ namespace WiseLabels.Pages
             // Collect form data from Request.Form
             var quoteRequest = new QuoteRequest
             {
+                // Contact information
+                Name = Request.Form["name"].ToString().Trim(),
+                Email = Request.Form["email"].ToString().Trim(),
+                Phone = Request.Form["phone"].ToString().Trim(),
+                
                 // Display values
                 Description = Request.Form["description"].ToString(),
                 Shape = Request.Form["shape"].ToString(),

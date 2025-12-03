@@ -10,6 +10,36 @@
             <h1 class="mb-4">Confirm Your Quote Request</h1>
             <p class="text-muted mb-4">Please review your information below. Click "Confirm" to submit or "Edit" to go back and make changes.</p>
 
+            @if (!string.IsNullOrEmpty(Model.QuoteRequest.Name) || !string.IsNullOrEmpty(Model.QuoteRequest.Email) || !string.IsNullOrEmpty(Model.QuoteRequest.Phone))
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h2 class="h5 mb-0">Contact Information</h2>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.Name))
+                            {
+                                <dt class="col-sm-4">Name:</dt>
+                                <dd class="col-sm-8">@Model.QuoteRequest.Name</dd>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.Email))
+                            {
+                                <dt class="col-sm-4">Email:</dt>
+                                <dd class="col-sm-8">@Model.QuoteRequest.Email</dd>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.Phone))
+                            {
+                                <dt class="col-sm-4">Phone:</dt>
+                                <dd class="col-sm-8">@Model.QuoteRequest.Phone</dd>
+                            }
+                        </dl>
+                    </div>
+                </div>
+            }
+
             <div class="card mb-4">
                 <div class="card-header">
                     <h2 class="h5 mb-0">Quote Details</h2>
@@ -98,7 +128,7 @@
 
             <form method="post">
                 @Html.AntiForgeryToken()
-                <div class="d-flex gap-3 justify-content-end">
+                <div class="d-flex gap-3 justify-content-end flex-wrap">
                     <button type="submit" asp-page-handler="Edit" class="btn btn-outline-secondary btn-lg">Edit</button>
                     <button type="submit" asp-page-handler="Confirm" class="btn btn-primary btn-lg">Confirm & Submit</button>
                 </div>

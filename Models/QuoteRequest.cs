@@ -2,6 +2,11 @@ namespace WiseLabels.Models
 {
     public class QuoteRequest
     {
+        // Contact information
+        public string? Name { get; set; }
+        public string? Email { get; set; }
+        public string? Phone { get; set; }
+        
         // Display values (for confirmation page)
         public string? Description { get; set; }
         public string? Shape { get; set; }

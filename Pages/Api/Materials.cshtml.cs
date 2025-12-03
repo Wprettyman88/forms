@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -72,7 +73,7 @@ namespace WiseLabels.Pages.Api
 
                 // Fetch materials
                 var materials = await FetchMaterialsAsync(materialsUrl, accessToken);
-                
+                                
                 return new JsonResult(materials);
             }
             catch (Exception ex)
@@ -376,7 +377,7 @@ namespace WiseLabels.Pages.Api
                     throw new Exception($"Failed to parse materials response: {jsonEx.Message}. Response: {jsonResponse.Substring(0, Math.Min(500, jsonResponse.Length))}", jsonEx);
                 }
 
-                if(paramResponse != null && paramResponse.Count > 0)
+                if (paramResponse != null && paramResponse.Count > 0)
                 {
                     foreach (var param in paramResponse)
                     {
@@ -394,6 +395,21 @@ namespace WiseLabels.Pages.Api
                             _logger.LogWarning("No descriptions found for Material ID: {MaterialID}", param.ID);
                         }
                     }
+                    
+                    // Sort materials alphabetically by their display description
+                    paramResponse = paramResponse.OrderBy(material =>
+                    {
+                        // Get description - prefer English, otherwise use first available
+                        if (material.Descriptions != null && material.Descriptions.Count > 0)
+                        {
+                            var englishDesc = material.Descriptions.FirstOrDefault(d =>
+                                d.ISOLanguageCode != null && d.ISOLanguageCode.ToLower().StartsWith("en"));
+                            var desc = englishDesc ?? material.Descriptions[0];
+                            return desc.Description ?? string.Empty;
+                        }
+                        return string.Empty;
+                    }, StringComparer.OrdinalIgnoreCase).ToList();
+                    
                     return paramResponse;
                 }
                 
