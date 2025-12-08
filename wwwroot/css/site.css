@@ -483,3 +483,123 @@ select.form-control {
     text-align: center;
   }
 }
+
+/* Print styles for confirmation page */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .container, .container * {
+    visibility: visible;
+  }
+  .container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  form {
+    display: none !important;
+  }
+  .card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  header, footer {
+    display: none !important;
+  }
+}
+
+/* PDF export specific styles - compact layout */
+body.pdf-export .container {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+body.pdf-export .col-lg-8.mx-auto {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+body.pdf-export .text-center.mb-4 {
+  margin-bottom: 0.5rem !important;
+}
+
+body.pdf-export .text-center.mb-4 svg {
+  width: 40px !important;
+  height: 40px !important;
+  margin-bottom: 0.25rem !important;
+}
+
+body.pdf-export h1 {
+  font-size: 1.25rem !important;
+  margin-bottom: 0.25rem !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+body.pdf-export .lead {
+  font-size: 0.85rem !important;
+  margin-bottom: 0.5rem !important;
+  margin-top: 0 !important;
+}
+
+body.pdf-export .row {
+  margin: 0 !important;
+}
+
+body.pdf-export .card {
+  margin-bottom: 0.75rem !important;
+  border: 1px solid #dee2e6 !important;
+}
+
+body.pdf-export .card-body {
+  padding: 0.75rem !important;
+}
+
+body.pdf-export .card-header {
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.95rem !important;
+}
+
+body.pdf-export .card-title {
+  font-size: 1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+body.pdf-export .card-text {
+  margin-bottom: 0.5rem !important;
+  font-size: 0.875rem !important;
+}
+
+body.pdf-export .alert {
+  padding: 0.5rem 0.75rem !important;
+  margin-bottom: 0.75rem !important;
+  font-size: 0.875rem !important;
+}
+
+body.pdf-export dl.row {
+  margin-bottom: 0 !important;
+}
+
+body.pdf-export dl.row dt {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+  font-size: 0.875rem !important;
+}
+
+body.pdf-export dl.row dd {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+  font-size: 0.875rem !important;
+}
+
+body.pdf-export .mb-3 {
+  margin-bottom: 0.75rem !important;
+}
+
+body.pdf-export .mb-4 {
+  margin-bottom: 0.75rem !important;
+}

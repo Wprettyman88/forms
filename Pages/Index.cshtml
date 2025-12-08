@@ -21,6 +21,7 @@
 
         <form class="quote-form" method="post" id="quote-form">
             @Html.AntiForgeryToken()
+            
             <div class="form-section">
                 <label class="form-section-label">Description</label>
                 <div class="form-section-content">
@@ -147,7 +148,7 @@
                             var printingValue = Model.SavedQuoteRequest?.PrintingValue ?? "";
                             var printingText = Model.SavedQuoteRequest?.Printing ?? "";
                         }
-                        <button type="button" class="filter-btn @(printingText == "Poocess Color - White + CMYK - Digital" || (string.IsNullOrEmpty(printingText) && string.IsNullOrEmpty(printingValue)) ? "active" : "")" data-filter="all">Poocess Color - White + CMYK - Digital</button>
+                        <button type="button" class="filter-btn @(printingText == "Process Color - White + CMYK - Digital" || (string.IsNullOrEmpty(printingText) && string.IsNullOrEmpty(printingValue)) ? "active" : "")" data-filter="all">Poocess Color - White + CMYK - Digital</button>
                         <button type="button" class="filter-btn @(printingText == "Spot Color 1 Standard Ink" ? "active" : "")" data-filter="all">Spot Color 1 Standard Ink</button>
                         <button type="button" class="filter-btn @(printingText == "Spot Color 2 Standard Ink" ? "active" : "")" data-filter="all">Spot Color 2 Standard Ink</button>
                         <button type="button" class="filter-btn @(printingText == "Process Color - Digital" ? "active" : "")" data-filter="all">Process Color - Digital</button>
@@ -158,7 +159,7 @@
 
             <!-- Material Section -->
             <div class="form-section">
-                <label class="form-section-label">Material & Finish</label>
+                <label class="form-section-label">Materials</label>
                 <div class="form-section-content">
                     <!--
                     <div class="material-filter">
@@ -173,7 +174,7 @@
                         <span>Loading materials ...</span>
                     </div>
                     <select class="form-control" id="material" name="material" size="10" data-saved-value="@(Model.SavedQuoteRequest?.MaterialValue ?? "")">
-                        <option value="">Loading materials...</option>
+                        
                     </select>
                     <div id="material-error" class="size-validation-message error" style="display: none;"></div>
                 </div>
@@ -313,6 +314,29 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Contact Information Section -->
+            <div class="form-section">
+                <label class="form-section-label">Contact Information</label>
+                <div class="form-section-content">
+                    <div class="mb-3">
+                        <label for="contact-name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="contact-name" name="contact-name" value="@(Model.SavedQuoteRequest?.Name ?? "")">
+                        <div class="invalid-feedback" id="name-validation" style="display: none;"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contact-email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="contact-email" name="contact-email" value="@(Model.SavedQuoteRequest?.Email ?? "")">
+                        <div class="invalid-feedback" id="email-validation" style="display: none;"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contact-phone" class="form-label">Phone</label>
+                        <input type="tel" class="form-control" id="contact-phone" name="contact-phone" value="@(Model.SavedQuoteRequest?.Phone ?? "")">
+                        <div class="invalid-feedback" id="phone-validation" style="display: none;"></div>
+                    </div>
+                    <p class="text-muted small mb-0">This information is optional and will only be used to contact you about your quote.</p>
+                </div>
+            </div>
         </form>
     </div>
 
@@ -358,7 +382,7 @@
                 materialError.style.display = 'none';
                 materialSelect.style.opacity = '0.5';
                 materialSelect.disabled = true;
-                materialSelect.innerHTML = '<option value="">Loading materials...</option>';
+                //materialSelect.innerHTML = '<option value="">Loading materials...</option>';
 
                 // Call server-side endpoint (credentials are handled server-side)
                 const response = await fetch('/Api/Materials', {
@@ -397,7 +421,7 @@
         // Populate Materials dropdown
         function populateMaterials(data) {
             // Clear existing options
-            materialSelect.innerHTML = '<option value="">Select a material...</option>';
+            //materialSelect.innerHTML = '<option value="">Select a material...</option>';
             
             // Handle different response structures
             let materials = [];
@@ -453,6 +477,96 @@
 
             // Update summary panel if material was already selected
             updateSummaryPanel();
+        }
+
+        // Function to validate email
+        function validateEmail() {
+            const emailInput = document.getElementById('contact-email');
+            const emailValidation = document.getElementById('email-validation');
+            const email = emailInput.value.trim();
+            
+            if (!email) {
+                emailValidation.style.display = 'none';
+                emailInput.classList.remove('is-invalid');
+                return true; // Email is optional
+            }
+            
+            // Basic email validation regex (build pattern to avoid Razor parsing issues)
+            const atSymbol = String.fromCharCode(64); // email address symbol
+            const emailRegex = new RegExp('^[^\\s' + atSymbol + ']+' + atSymbol + '[^\\s' + atSymbol + ']+\\.[^\\s' + atSymbol + ']+$');
+            
+            if (!emailRegex.test(email)) {
+                emailValidation.textContent = 'Please enter a valid email address.';
+                emailValidation.style.display = 'block';
+                emailInput.classList.add('is-invalid');
+                return false;
+            }
+            
+            emailValidation.style.display = 'none';
+            emailInput.classList.remove('is-invalid');
+            return true;
+        }
+
+        // Function to validate phone
+        function validatePhone() {
+            const phoneInput = document.getElementById('contact-phone');
+            const phoneValidation = document.getElementById('phone-validation');
+            const phone = phoneInput.value.trim();
+            
+            if (!phone) {
+                phoneValidation.style.display = 'none';
+                phoneInput.classList.remove('is-invalid');
+                return true; // Phone is optional
+            }
+            
+            // Remove common phone formatting characters for validation
+            const cleanedPhone = phone.replace(/[\s\-\(\)\.]/g, '');
+            
+            // Validate: should contain only digits and optionally start with +
+            const phoneRegex = /^\+?\d{10,15}$/;
+            
+            if (!phoneRegex.test(cleanedPhone)) {
+                phoneValidation.textContent = 'Please enter a valid phone number (10-15 digits).';
+                phoneValidation.style.display = 'block';
+                phoneInput.classList.add('is-invalid');
+                return false;
+            }
+            
+            phoneValidation.style.display = 'none';
+            phoneInput.classList.remove('is-invalid');
+            return true;
+        }
+
+        // Function to validate name (optional, but if provided should be reasonable)
+        function validateName() {
+            const nameInput = document.getElementById('contact-name');
+            const nameValidation = document.getElementById('name-validation');
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                nameValidation.style.display = 'none';
+                nameInput.classList.remove('is-invalid');
+                return true; // Name is optional
+            }
+            
+            // Check if name is too short or too long
+            if (name.length < 2) {
+                nameValidation.textContent = 'Name must be at least 2 characters long.';
+                nameValidation.style.display = 'block';
+                nameInput.classList.add('is-invalid');
+                return false;
+            }
+            
+            if (name.length > 100) {
+                nameValidation.textContent = 'Name must be 100 characters or less.';
+                nameValidation.style.display = 'block';
+                nameInput.classList.add('is-invalid');
+                return false;
+            }
+            
+            nameValidation.style.display = 'none';
+            nameInput.classList.remove('is-invalid');
+            return true;
         }
 
         // Function to format number without trailing zeros
@@ -905,6 +1019,28 @@
         document.getElementById('description')?.addEventListener('input', updateSummaryPanel);
         document.getElementById('description')?.addEventListener('change', updateSummaryPanel);
 
+        // Contact information validation handlers
+        document.getElementById('contact-name')?.addEventListener('blur', validateName);
+        document.getElementById('contact-name')?.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid')) {
+                validateName();
+            }
+        });
+
+        document.getElementById('contact-email')?.addEventListener('blur', validateEmail);
+        document.getElementById('contact-email')?.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid')) {
+                validateEmail();
+            }
+        });
+
+        document.getElementById('contact-phone')?.addEventListener('blur', validatePhone);
+        document.getElementById('contact-phone')?.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid')) {
+                validatePhone();
+            }
+        });
+
         // Initial setup
         toggleCornersSection();
         toggleSizeSections();
@@ -930,6 +1066,17 @@
             try {
                 const savedData = JSON.parse(savedDataScript.textContent);
                 console.log('Restoring form data:', savedData);
+                
+                // Restore contact information
+                if (savedData.name) {
+                    document.getElementById('contact-name').value = savedData.name;
+                }
+                if (savedData.email) {
+                    document.getElementById('contact-email').value = savedData.email;
+                }
+                if (savedData.phone) {
+                    document.getElementById('contact-phone').value = savedData.phone;
+                }
                 
                 // Restore description
                 if (savedData.description) {
@@ -1146,6 +1293,21 @@
         document.getElementById('send-quote-btn')?.addEventListener('click', function(e) {
             e.preventDefault();
             
+            // Validate contact fields before submitting
+            const isNameValid = validateName();
+            const isEmailValid = validateEmail();
+            const isPhoneValid = validatePhone();
+            
+            if (!isNameValid || !isEmailValid || !isPhoneValid) {
+                // Scroll to first validation error
+                const firstError = document.querySelector('.is-invalid');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
+                }
+                return; // Don't submit if validation fails
+            }
+            
             // Collect all form data
             const formData = new FormData(document.getElementById('quote-form'));
             
@@ -1216,6 +1378,11 @@
             });
 
             const quoteData = {
+                // Contact information
+                name: document.getElementById('contact-name')?.value.trim() || '',
+                email: document.getElementById('contact-email')?.value.trim() || '',
+                phone: document.getElementById('contact-phone')?.value.trim() || '',
+                
                 // Display values (for confirmation page)
                 description: document.getElementById('description')?.value || '',
                 shape: getShapeText(),

@@ -9,11 +9,13 @@ namespace WiseLabels.Pages
     {
         private readonly ILogger<ConfirmModel> _logger;
         private readonly WiseLabels.Services.IQuoteService _quoteService;
+        private readonly WiseLabels.Services.IEmailService _emailService;
 
-        public ConfirmModel(ILogger<ConfirmModel> logger, WiseLabels.Services.IQuoteService quoteService)
+        public ConfirmModel(ILogger<ConfirmModel> logger, WiseLabels.Services.IQuoteService quoteService, WiseLabels.Services.IEmailService emailService)
         {
             _logger = logger;
             _quoteService = quoteService;
+            _emailService = emailService;
         }
 
         [BindProperty]
@@ -62,9 +64,26 @@ namespace WiseLabels.Pages
                 // Submit to CERM API
                 var apiSuccess = await _quoteService.SubmitToCermApiAsync(quote);
 
-                // Store quote ID in TempData for success page
+                // Send confirmation email if email address was provided
+                if (!string.IsNullOrWhiteSpace(quote.Email))
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _emailService.SendQuoteConfirmationAsync(quote.Email, quoteId, quote.Name ?? "Customer");
+                        }
+                        catch (Exception emailEx)
+                        {
+                            _logger.LogError(emailEx, "Error sending confirmation email (non-blocking)");
+                        }
+                    });
+                }
+
+                // Store quote data in TempData for success page (including quote ID)
                 TempData["QuoteId"] = quoteId;
                 TempData["ApiSuccess"] = apiSuccess.ToString();
+                TempData["QuoteRequest"] = JsonSerializer.Serialize(quote); // Pass full quote data for PDF
 
                 return RedirectToPage("/Success");
             }

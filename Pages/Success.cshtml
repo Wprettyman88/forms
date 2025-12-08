@@ -6,29 +6,39 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-lg-8 mx-auto text-center">
-            <div class="mb-4">
+        <div class="col-lg-8 mx-auto">
+            <div class="text-center mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="#28a745" class="bi bi-check-circle" viewBox="0 0 16 16">
                     <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                     <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 2.384 4.323a.75.75 0 0 1 1.06-1.061l4.033 4.033a.75.75 0 0 0 1.08-.022l3.468-4.387a.75.75 0 0 1 1.08.022z"/>
                 </svg>
             </div>
-            <h1 class="mb-3">Quote Submitted Successfully!</h1>
-            <p class="lead text-muted mb-4">
+            <h1 class="text-center mb-3">Quote Submitted Successfully!</h1>
+            <p class="lead text-center text-muted mb-4">
                 Thank you for your quote request. We have received your information and will process it shortly.
             </p>
 
             @if (!string.IsNullOrEmpty(Model.QuoteId))
             {
                 <div class="card mb-4">
-                    <div class="card-body">
+                    <div class="card-body text-center">
                         <h5 class="card-title">Quote Reference</h5>
                         <p class="card-text">
                             <strong>Quote ID:</strong> <code>@Model.QuoteId</code>
                         </p>
+                        <p class="card-text">
+                            <strong>Submitted Date:</strong> @Model.SubmittedDate.ToString("MMMM dd, yyyy 'at' h:mm tt")
+                        </p>
                         <p class="card-text text-muted small">
                             Please save this reference number for your records.<br />
-                            If you provided your email you will receive a confirmation email shortly.
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest?.Email))
+                            {
+                                <text>A confirmation email has been sent to @Model.QuoteRequest.Email</text>
+                            }
+                            else
+                            {
+                                <text>If you provided your email, you will receive a confirmation email shortly.</text>
+                            }
                         </p>
                     </div>
                 </div>
@@ -41,6 +51,130 @@
                 </div>
             }
 
+            @if (Model.QuoteRequest != null)
+            {
+                @if (!string.IsNullOrEmpty(Model.QuoteRequest.Name) || !string.IsNullOrEmpty(Model.QuoteRequest.Email) || !string.IsNullOrEmpty(Model.QuoteRequest.Phone))
+                {
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h2 class="h5 mb-0">Contact Information</h2>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                @if (!string.IsNullOrEmpty(Model.QuoteRequest.Name))
+                                {
+                                    <dt class="col-sm-4">Name:</dt>
+                                    <dd class="col-sm-8">@Model.QuoteRequest.Name</dd>
+                                }
+
+                                @if (!string.IsNullOrEmpty(Model.QuoteRequest.Email))
+                                {
+                                    <dt class="col-sm-4">Email:</dt>
+                                    <dd class="col-sm-8">@Model.QuoteRequest.Email</dd>
+                                }
+
+                                @if (!string.IsNullOrEmpty(Model.QuoteRequest.Phone))
+                                {
+                                    <dt class="col-sm-4">Phone:</dt>
+                                    <dd class="col-sm-8">@Model.QuoteRequest.Phone</dd>
+                                }
+                            </dl>
+                        </div>
+                    </div>
+                }
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h2 class="h5 mb-0">Quote Details</h2>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.Description))
+                            {
+                                <dt class="col-sm-4">Description:</dt>
+                                <dd class="col-sm-8">@Model.QuoteRequest.Description</dd>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.Shape))
+                            {
+                                <dt class="col-sm-4">Shape:</dt>
+                                <dd class="col-sm-8">@(Model.QuoteRequest.Shape.Length > 0 ? Model.QuoteRequest.Shape.Substring(0, 1).ToUpper() + Model.QuoteRequest.Shape.Substring(1) : Model.QuoteRequest.Shape)</dd>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.Diameter))
+                            {
+                                <dt class="col-sm-4">Diameter:</dt>
+                                <dd class="col-sm-8">@Model.QuoteRequest.Diameter"</dd>
+                            }
+                            else if (!string.IsNullOrEmpty(Model.QuoteRequest.LabelWidth) || !string.IsNullOrEmpty(Model.QuoteRequest.LabelHeight))
+                            {
+                                <dt class="col-sm-4">Size:</dt>
+                                <dd class="col-sm-8">@(Model.QuoteRequest.LabelWidth ?? "")" × @(Model.QuoteRequest.LabelHeight ?? "")"</dd>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.Corners))
+                            {
+                                <dt class="col-sm-4">Corners:</dt>
+                                <dd class="col-sm-8">@Model.QuoteRequest.Corners</dd>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.CuttingDie))
+                            {
+                                <dt class="col-sm-4">Cutting Die:</dt>
+                                <dd class="col-sm-8">@Model.QuoteRequest.CuttingDie</dd>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.Printing))
+                            {
+                                <dt class="col-sm-4">Printing:</dt>
+                                <dd class="col-sm-8">@Model.QuoteRequest.Printing</dd>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.Material))
+                            {
+                                <dt class="col-sm-4">Material:</dt>
+                                <dd class="col-sm-8">@Model.QuoteRequest.Material</dd>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.Finish))
+                            {
+                                <dt class="col-sm-4">Finish:</dt>
+                                <dd class="col-sm-8">@Model.QuoteRequest.Finish</dd>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.ApplicationMethod))
+                            {
+                                <dt class="col-sm-4">Application Method:</dt>
+                                <dd class="col-sm-8">@Model.QuoteRequest.ApplicationMethod</dd>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.UnwindDirection))
+                            {
+                                <dt class="col-sm-4">Unwind Direction:</dt>
+                                <dd class="col-sm-8">@Model.QuoteRequest.UnwindDirection</dd>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.TotalQuantity))
+                            {
+                                <dt class="col-sm-4">Total Quantity:</dt>
+                                <dd class="col-sm-8">@Model.QuoteRequest.TotalQuantity</dd>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.ArtworkOption))
+                            {
+                                <dt class="col-sm-4">Artwork:</dt>
+                                <dd class="col-sm-8">@Model.QuoteRequest.ArtworkOption</dd>
+                            }
+                        </dl>
+                    </div>
+                </div>
+            }
+
+            <div class="d-flex gap-3 justify-content-center flex-wrap mb-4">
+                <button type="button" id="print-btn" class="btn btn-outline-primary btn-lg">Print</button>
+                <button type="button" id="pdf-btn" class="btn btn-outline-primary btn-lg">Save as PDF</button>
+            </div>
+
             <div class="d-flex gap-3 justify-content-center">
                 <a href="/" class="btn btn-primary">Submit Another Quote</a>
                 <a href="/" class="btn btn-outline-secondary">Return to Home</a>
@@ -48,4 +182,132 @@
         </div>
     </div>
 </div>
+
+<!-- Include html2pdf.js library for PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const printBtn = document.getElementById('print-btn');
+        const pdfBtn = document.getElementById('pdf-btn');
+        const quoteId = '@Model.QuoteId';
+        const submittedDate = '@Model.SubmittedDate.ToString("yyyy-MM-dd")';
+        
+        // Print functionality
+        if (printBtn) {
+            printBtn.addEventListener('click', function() {
+                window.print();
+            });
+        }
+        
+        // PDF export functionality
+        if (pdfBtn) {
+            pdfBtn.addEventListener('click', function() {
+                // Show loading state
+                const originalText = pdfBtn.textContent;
+                pdfBtn.disabled = true;
+                pdfBtn.textContent = 'Generating PDF...';
+                
+                // Get the content to convert - use the main container div
+                const contentElement = document.querySelector('.col-lg-8.mx-auto');
+                const buttons = document.querySelectorAll('button, .d-flex.gap-3.justify-content-center');
+                
+                // Hide success icon for PDF (saves space at top)
+                const successIcon = document.querySelector('.text-center.mb-4 svg');
+                let successIconParent = null;
+                let iconOriginalDisplay = '';
+                if (successIcon) {
+                    successIconParent = successIcon.closest('.text-center.mb-4');
+                    if (successIconParent) {
+                        iconOriginalDisplay = successIconParent.style.display || '';
+                        successIconParent.style.display = 'none';
+                    }
+                }
+                
+                // Store original display states
+                const hiddenElements = [];
+                buttons.forEach(btn => {
+                    hiddenElements.push({
+                        element: btn,
+                        originalDisplay: btn.style.display
+                    });
+                    btn.style.display = 'none';
+                });
+                
+                const header = document.querySelector('header');
+                const footer = document.querySelector('footer');
+                const headerOriginalDisplay = header ? header.style.display : '';
+                const footerOriginalDisplay = footer ? footer.style.display : '';
+                
+                // Temporarily hide header and footer for PDF
+                if (header) header.style.display = 'none';
+                if (footer) footer.style.display = 'none';
+                
+                // Configure PDF options with quote ID and date in filename
+                const filename = quoteId 
+                    ? `quote-${quoteId}-${submittedDate}.pdf`
+                    : `quote-request-${submittedDate}.pdf`;
+                
+                // Add PDF-specific class to body for styling
+                document.body.classList.add('pdf-export');
+                
+                const opt = {
+                    margin: [5, 10, 10, 10], // 5mm top margin (~0.2 inch), sides/bottom 10mm
+                    filename: filename,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { 
+                        scale: 2, 
+                        useCORS: true,
+                        logging: false,
+                        letterRendering: true,
+                        scrollY: 0 // Start from top of page
+                    },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                };
+                
+                // Generate PDF
+                html2pdf().set(opt).from(contentElement || document.body).save().then(function() {
+                    // Remove PDF class
+                    document.body.classList.remove('pdf-export');
+                    
+                    // Restore success icon
+                    if (successIconParent) {
+                        successIconParent.style.display = iconOriginalDisplay;
+                    }
+                    
+                    // Restore elements
+                    hiddenElements.forEach(item => {
+                        item.element.style.display = item.originalDisplay;
+                    });
+                    if (header) header.style.display = headerOriginalDisplay;
+                    if (footer) footer.style.display = footerOriginalDisplay;
+                    pdfBtn.disabled = false;
+                    pdfBtn.textContent = originalText;
+                }).catch(function(error) {
+                    // Remove PDF class on error
+                    document.body.classList.remove('pdf-export');
+                    
+                    // Restore success icon on error
+                    if (successIconParent) {
+                        successIconParent.style.display = iconOriginalDisplay;
+                    }
+                    
+                    console.error('Error generating PDF:', error);
+                    alert('Error generating PDF. Please try printing instead.');
+                    // Restore elements on error
+                    hiddenElements.forEach(item => {
+                        item.element.style.display = item.originalDisplay;
+                    });
+                    if (header) header.style.display = headerOriginalDisplay;
+                    if (footer) footer.style.display = footerOriginalDisplay;
+                    pdfBtn.disabled = false;
+                    pdfBtn.textContent = originalText;
+                });
+            });
+        }
+    });
+</script>
+}
 

@@ -4,7 +4,7 @@ Label Orders.
 Label Invoices.  
 
 ## Deployment
-[Production](https://wiselabels20251125155258-btbvc6cwdwetbjdc.canadacentral-01.azurewebsites.net/)
+[Production](https://wiselabels20251125155258-btbvc6cwdwetbjdc.canadacentral-01.azurewebsites.net/)7e
 [Development](https://wiselabels2025112515525-wiselabels-dev-f7bqa3fsamakdpcs.canadacentral-01.azurewebsites.net/)
 
 ## Software Product Requirements
@@ -53,3 +53,11 @@ If a "Printing" option (aka Color Code) is chosen that includes the string "Digi
 
 See stnspr__.materie_ in Cerm SQL Database for values of "1" for "Rotary Die" or "2" for "Flexible Die"
 
+
+### ToDo:
+1. Add contact information fields for resellers and end users during the quote/order/invoice process.
+2. Store contact information with the quote/order/invoice records. 
+3. Display contact information on generated documents (quotes, orders, invoices).
+4. Printing needs to come from CERM.
+5. Filter Materials.
+6. Change Materials to use substrates API from CERM.
