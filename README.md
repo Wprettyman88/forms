@@ -30,14 +30,17 @@ Label Invoices.
 
 Where possible use the "AllowQuickQuote" filterable field.
 This Includes:
-Dies
-Substrates
-Printing (Color Codes)
-Finishing (Finishing Types)
-Packing (Packing Procedures)
+1. Substrates
+1. Printing (Color Codes)
+1. Finishing (Finishing Types)
+1. Dies
+1. Packing (Packing Procedures)
+
 
 #### Finishing Field Filters based on Printing Field Choice
-If a "Printing" option (aka Color Code) is chosen that includes the string "Flexo", then filter the options in Finshing to options that are Finishing Type "1", which is "Inline".
+2 Options
+1. If a "Printing" option (Color Code) is chosen that is a Ink Type (see inkklr__.srt_inkt) "0" for Flexo, "7" for Digital
+1. If a "Printing" option (aka Color Code) is chosen that includes the string "Flexo", then filter the options in Finshing to options that are Finishing Type "1", which is "Inline".
 
 If a "Printing" option (aka Color Code) is chosen that includes the string "Digital", then filter the options in Finishing to options that are Finishing Type "2", which is "Offline".
 
