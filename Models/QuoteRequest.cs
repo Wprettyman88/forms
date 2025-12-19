@@ -17,6 +17,7 @@ namespace WiseLabels.Models
         public string? CuttingDie { get; set; }
         public string? Printing { get; set; }
         public string? Material { get; set; }
+        public string? ColorCode { get; set; }
         public string? Finish { get; set; }
         public string? ApplicationMethod { get; set; }
         public string? UnwindDirection { get; set; }
@@ -27,6 +28,7 @@ namespace WiseLabels.Models
         public string? ShapeValue { get; set; }
         public string? CornersValue { get; set; }
         public string? MaterialValue { get; set; }
+        public string? ColorCodeValue { get; set; }
         public string? FinishValue { get; set; }
         public string? ApplicationMethodValue { get; set; }
         public string? UnwindDirectionValue { get; set; }

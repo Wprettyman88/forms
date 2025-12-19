@@ -6,6 +6,7 @@ Label Invoices.
 ## Deployment
 [Production](https://wiselabels20251125155258-btbvc6cwdwetbjdc.canadacentral-01.azurewebsites.net/)7e
 [Development](https://wiselabels2025112515525-wiselabels-dev-f7bqa3fsamakdpcs.canadacentral-01.azurewebsites.net/)
+[Demo Site Wrapper](http://azwbfdev/wrapper.html)
 
 ## Software Product Requirements
 
@@ -43,6 +44,25 @@ If a "Printing" option (aka Color Code) is chosen that includes the string "Digi
 
 See v1etaf__.etap_typ in Cerm SQL Database for values of "1" for "Inline" or "2" for "Offline"
 
+### Color Code Sample
+```json
+{
+    "Id": "DRL",
+    "Descriptions": [
+        {
+            "ISOLanguageCode": "en-US",
+            "Description": "Delam / Relam"
+        },
+        {
+            "ISOLanguageCode": "en-GB",
+            "Description": "Delam / Relam"
+        }
+    ],
+    "AllowQuickQuote": false,
+    "AllowRFQ": false,
+    "Blocked": false
+},
+```
 #### Existing Die Field Filters based on Printing Field Choice
 If a "Printing" option (aka Color Code) is chosen that includes the string "Flexo", then filter the Die options down to Material Type "1" (Rotary Die)
 
@@ -58,3 +78,18 @@ See stnspr__.materie_ in Cerm SQL Database for values of "1" for "Rotary Die" or
 4. Printing needs to come from CERM.
 5. Filter Materials.
 6. Change Materials to use substrates API from CERM.
+7. Auth via GP account number.
+
+
+
+Parameter order
+1. Description - working
+2. Shape - working
+3. Corners - working
+4. Label Size - working
+5. Material/Substrate - pull from API. No filter.
+6. Printing - working.
+7. Cutting Die - requires Printing.
+8. Finishing
+
+

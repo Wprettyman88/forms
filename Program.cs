@@ -1,3 +1,6 @@
+using CERM.DataAccess;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +8,18 @@ builder.Services.AddRazorPages();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<WiseLabels.Services.IQuoteService, WiseLabels.Services.QuoteService>();
 builder.Services.AddScoped<WiseLabels.Services.IEmailService, WiseLabels.Services.EmailService>();
+builder.Services.AddDbContext<CermDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("CermDatabase")));
+builder.Services.AddScoped<CERM.DataAccess.Repositories.Job.IJobRepository, CERM.DataAccess.Repositories.Job.JobRepositoryEF>();
+builder.Services.AddScoped<CERM.DataAccess.Repositories.Substrate.ISubstrateRepository, CERM.DataAccess.Repositories.Substrate.SubstrateRepositoryEF>();
+
+// Choose ONE of these approaches:
+
+// Option 1: Use Entity Framework Core only
+builder.Services.AddCermDataAccessEF(builder.Configuration);
+// Option 2: Use Dapper only
+//builder.Services.AddCermDataAccessDapper(builder.Configuration);
+// Option 3: Use both (EF as default)
+//builder.Services.AddCermDataAccessBoth(builder.Configuration);
 
 var app = builder.Build();
 

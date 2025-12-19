@@ -136,6 +136,12 @@
                                 <dd class="col-sm-8">@Model.QuoteRequest.Material</dd>
                             }
 
+                            @if (!string.IsNullOrEmpty(Model.QuoteRequest.ColorCode))
+                            {
+                                <dt class="col-sm-4">Color Code:</dt>
+                                <dd class="col-sm-8">@Model.QuoteRequest.ColorCode</dd>
+                            }
+
                             @if (!string.IsNullOrEmpty(Model.QuoteRequest.Finish))
                             {
                                 <dt class="col-sm-4">Finish:</dt>

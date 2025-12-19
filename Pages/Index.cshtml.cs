@@ -2,21 +2,27 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using WiseLabels.Models;
 using System.Text.Json;
+using CERM.DataAccess.Models;
+using CERM.DataAccess.Repositories.Substrate;
 
 namespace WiseLabels.Pages
 {
     public class IndexModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;
+        private readonly ISubstrateRepository _substrateRepo;
 
-        public IndexModel(ILogger<IndexModel> logger)
+        public Substrates? Substrate { get; set; }
+
+        public IndexModel(ILogger<IndexModel> logger, ISubstrateRepository substrateRepo)
         {
             _logger = logger;
+            _substrateRepo = substrateRepo;
         }
 
         public QuoteRequest? SavedQuoteRequest { get; set; }
 
-        public void OnGet()
+        public async Task OnGetAsync()
         {
             // Check if we're returning from confirmation page (Edit button)
             if (TempData.TryGetValue("QuoteRequest", out var quoteData))
@@ -32,6 +38,20 @@ namespace WiseLabels.Pages
                     _logger.LogError(ex, "Error deserializing quote request from TempData");
                     SavedQuoteRequest = null;
                 }
+            }
+            
+            try
+            {
+                Substrate = await _substrateRepo.GetSubstrateByIdAsync("000006");
+
+                if (Substrate == null)
+                {
+                    _logger.LogWarning("Substrate with ID '000006' not found.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving the substrate.");
             }
         }
 
@@ -55,6 +75,7 @@ namespace WiseLabels.Pages
                 CuttingDie = Request.Form["cuttingDie"].ToString(),
                 Printing = Request.Form["printing"].ToString(),
                 Material = Request.Form["material"].ToString(),
+                ColorCode = Request.Form["colorCode"].ToString(),
                 Finish = Request.Form["finish"].ToString(),
                 ApplicationMethod = Request.Form["applicationMethod"].ToString(),
                 UnwindDirection = Request.Form["unwindDirection"].ToString(),
@@ -65,6 +86,7 @@ namespace WiseLabels.Pages
                 ShapeValue = Request.Form["shapeValue"].ToString(),
                 CornersValue = Request.Form["cornersValue"].ToString(),
                 MaterialValue = Request.Form["materialValue"].ToString(),
+                ColorCodeValue = Request.Form["colorCodeValue"].ToString(),
                 FinishValue = Request.Form["finishValue"].ToString(),
                 ApplicationMethodValue = Request.Form["applicationMethodValue"].ToString(),
                 UnwindDirectionValue = Request.Form["unwindDirectionValue"].ToString(),

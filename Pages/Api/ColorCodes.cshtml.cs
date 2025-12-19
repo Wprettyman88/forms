@@ -4,36 +4,35 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using CERM.DataAccess;
 
 namespace WiseLabels.Pages.Api
 {
-    public class ParameterResponse
+    public class ColorCodeResponse
     {
-        [JsonPropertyName("Substrate")]
-        public SubstrateData? Substrate { get; set; }
-        
-        [JsonPropertyName("Material")]
-        public SubstrateData? Material { get; set; }
+        [JsonPropertyName("ColourBacking")]
+        public ColourBackingData? ColourBacking { get; set; }
 
         [JsonPropertyName("Blocked")]
-        public bool Blocked { get; set; }
+        public bool? Blocked { get; set; }
 
         [JsonPropertyName("AllowRFQ")]
-        public bool AllowRFQ { get; set; }
+        public bool? AllowRFQ { get; set; }
     }
 
-    public class SubstrateData
+    public class ColourBackingData
     {
         [JsonPropertyName("Id")]
         public string? Id { get; set; }
 
         [JsonPropertyName("Descriptions")]
-        public List<Descriptions>? Descriptions { get; set; }        
+        public List<ColorCodeDescriptions>? Descriptions { get; set; }
+        
+        // Handle typo in API: "Discriptions" instead of "Descriptions"
+        [JsonPropertyName("Discriptions")]
+        public List<ColorCodeDescriptions>? Discriptions { get; set; }
     }
 
-    public class Descriptions
+    public class ColorCodeDescriptions
     {
         [JsonPropertyName("ISOLanguageCode")]
         public string? ISOLanguageCode { get; set; }
@@ -43,34 +42,35 @@ namespace WiseLabels.Pages.Api
     }
 
     [IgnoreAntiforgeryToken]
-    public class MaterialsModel : PageModel
+    public class ColorCodesModel : PageModel
     {
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ILogger<MaterialsModel> _logger;
-        private readonly CermDbContext _dbContext;
+        private readonly ILogger<ColorCodesModel> _logger;
 
-        public MaterialsModel(IConfiguration configuration, IHttpClientFactory httpClientFactory, ILogger<MaterialsModel> logger, CermDbContext dbContext)
+        public ColorCodesModel(IConfiguration configuration, IHttpClientFactory httpClientFactory, ILogger<ColorCodesModel> logger)
         {
             _configuration = configuration;
             _httpClientFactory = httpClientFactory;
             _logger = logger;
-            _dbContext = dbContext;
         }
 
         public async Task<IActionResult> OnGetAsync()
         {
+            _logger.LogInformation("ColorCodes OnGetAsync called");
             try
             {
                 // Get credentials from configuration
                 var oauthUrl = _configuration["Cerm:OAuthUrl"] ?? "https://brandmark-api.cerm.be/oauth/token";
-                var materialsUrl = _configuration["Cerm:MaterialsUrl"] ?? "https://brandmark-api.cerm.be/parameter-api/v1/calculation/substrates";
+                var colorCodesUrl = _configuration["Cerm:ColorCodesUrl"] ?? "https://brandmark-api.cerm.be/parameter-api/v1/calculation/front-adhesive-backing/colour-codes?Filter=AllowRFQ%20eq%20true%20and%20Blocked%20ne%20true";
                 var username = _configuration["Cerm:Username"];
                 var password = _configuration["Cerm:Password"];
                 var clientId = _configuration["Cerm:ClientId"];
                 var clientSecret = _configuration["Cerm:ClientSecret"];
+                
+                _logger.LogInformation("ColorCodes endpoint called. URL: {ColorCodesUrl}", colorCodesUrl);
 
-                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) ||
+                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || 
                     string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
                 {
                     _logger.LogError("CERM API credentials are missing from configuration");
@@ -90,15 +90,15 @@ namespace WiseLabels.Pages.Api
                     };
                 }
 
-                // Fetch materials from API (no filtering for now)
-                var materials = await FetchMaterialsAsync(materialsUrl, accessToken);
-
-                return new JsonResult(new { materials = materials });
+                // Fetch color codes
+                var colorCodes = await FetchColorCodesAsync(colorCodesUrl, accessToken);
+                                
+                return new JsonResult(colorCodes);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching materials from CERM API");
-                return new JsonResult(new { error = $"Error loading materials: {ex.Message}" })
+                _logger.LogError(ex, "Error fetching color codes from CERM API");
+                return new JsonResult(new { error = $"Error loading color codes: {ex.Message}" })
                 {
                     StatusCode = 500
                 };
@@ -112,17 +112,17 @@ namespace WiseLabels.Pages.Api
             {
                 // Ensure URL doesn't have trailing slash
                 oauthUrl = oauthUrl.TrimEnd('/');
-
+                
                 // Create handler that allows self-signed certificates for internal APIs
                 var handler = new HttpClientHandler();
                 if (oauthUrl.Contains("192.168.") || oauthUrl.Contains("localhost") || oauthUrl.Contains("127.0.0.1"))
                 {
                     handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
                 }
-
+                
                 httpClient = new HttpClient(handler);
                 httpClient.Timeout = TimeSpan.FromSeconds(30);
-
+                
                 _logger.LogInformation("OAuth URL: {OAuthUrl}", oauthUrl);
 
                 // Method 1: Try credentials in body only (matching Postman "Send client credentials in body")
@@ -140,18 +140,18 @@ namespace WiseLabels.Pages.Api
                     Content = new FormUrlEncodedContent(formData)
                 };
                 request.Headers.Add("Accept", "application/json");
-
+                
                 _logger.LogInformation("Attempting OAuth authentication (method 1 - credentials in body only) to {OAuthUrl}", oauthUrl);
 
                 var response = await httpClient.SendAsync(request);
-
+                
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     var errorMessage = $"OAuth authentication failed: {response.StatusCode} - {errorContent}";
-                    _logger.LogError("OAuth authentication failed (method 1 - credentials in body only): {StatusCode} - {Error}. Request URL: {OAuthUrl}",
+                    _logger.LogError("OAuth authentication failed (method 1 - credentials in body only): {StatusCode} - {Error}. Request URL: {OAuthUrl}", 
                         response.StatusCode, errorContent, oauthUrl);
-
+                    
                     // Try method 2: Basic Auth header + credentials in body
                     _logger.LogInformation("Retrying with Basic Auth header + credentials in body");
                     var (retryToken2, retryError2) = await TryWithBasicAuthHeader(oauthUrl, username, password, clientId, clientSecret);
@@ -159,7 +159,7 @@ namespace WiseLabels.Pages.Api
                     {
                         return (retryToken2, null);
                     }
-
+                    
                     // Try method 3: Basic Auth only (credentials in header only, not in body)
                     _logger.LogInformation("Retrying with Basic Auth only (credentials in header only)");
                     var (retryToken3, retryError3) = await TryBasicAuthOnly(oauthUrl, username, password, clientId, clientSecret);
@@ -167,14 +167,14 @@ namespace WiseLabels.Pages.Api
                     {
                         return (retryToken3, null);
                     }
-
+                    
                     // All methods failed, return detailed error
                     return (null, $"All methods failed. Method 1: {errorMessage}. Method 2: {retryError2}. Method 3: {retryError3}");
                 }
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var tokenData = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
-
+                
                 if (tokenData.TryGetProperty("access_token", out var accessToken))
                 {
                     _logger.LogInformation("OAuth authentication successful");
@@ -207,7 +207,7 @@ namespace WiseLabels.Pages.Api
                 {
                     handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
                 }
-
+                
                 httpClient = new HttpClient(handler);
                 httpClient.Timeout = TimeSpan.FromSeconds(30);
 
@@ -226,15 +226,15 @@ namespace WiseLabels.Pages.Api
                     Content = new FormUrlEncodedContent(formData)
                 };
                 request.Headers.Add("Accept", "application/json");
-
+                
                 // Add Basic Auth header with client credentials
                 var clientCredentials = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", clientCredentials);
-
+                
                 _logger.LogInformation("Trying OAuth authentication (method 2 - Basic Auth header + credentials in body)");
 
                 var response = await httpClient.SendAsync(request);
-
+                
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
@@ -245,7 +245,7 @@ namespace WiseLabels.Pages.Api
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var tokenData = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
-
+                
                 if (tokenData.TryGetProperty("access_token", out var accessToken))
                 {
                     _logger.LogInformation("OAuth authentication successful (method 2)");
@@ -276,7 +276,7 @@ namespace WiseLabels.Pages.Api
                 {
                     handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
                 }
-
+                
                 httpClient = new HttpClient(handler);
                 httpClient.Timeout = TimeSpan.FromSeconds(30);
 
@@ -294,15 +294,15 @@ namespace WiseLabels.Pages.Api
                     Content = new FormUrlEncodedContent(formData)
                 };
                 request.Headers.Add("Accept", "application/json");
-
+                
                 // Client credentials as Basic Auth in headers only
                 var clientCredentials = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", clientCredentials);
-
+                
                 _logger.LogInformation("Retrying OAuth authentication with Basic Auth only (no client credentials in body)");
 
                 var response = await httpClient.SendAsync(request);
-
+                
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
@@ -313,7 +313,7 @@ namespace WiseLabels.Pages.Api
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var tokenData = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
-
+                
                 if (tokenData.TryGetProperty("access_token", out var accessToken))
                 {
                     _logger.LogInformation("OAuth authentication successful with Basic Auth only");
@@ -334,7 +334,7 @@ namespace WiseLabels.Pages.Api
             }
         }
 
-        private async Task<object> FetchMaterialsAsync(string materialsUrl, string accessToken)
+        private async Task<object> FetchColorCodesAsync(string colorCodesUrl, string accessToken)
         {
             try
             {
@@ -344,142 +344,103 @@ namespace WiseLabels.Pages.Api
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
                 httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 
-                var response = await httpClient.GetAsync(materialsUrl);
-
+                var response = await httpClient.GetAsync(colorCodesUrl);
+                
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
-                    _logger.LogError("Failed to fetch materials: {StatusCode} - {Error}", response.StatusCode, errorContent);
-                    throw new HttpRequestException($"Failed to fetch materials: {response.StatusCode}");
+                    _logger.LogError("Failed to fetch color codes: {StatusCode} - {Error}", response.StatusCode, errorContent);
+                    throw new HttpRequestException($"Failed to fetch color codes: {response.StatusCode}");
                 }
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
+                _logger.LogDebug("Color Codes API response: {Response}", jsonResponse);
 
                 // Try to deserialize - handle different response structures
-                List<ParameterResponse>? paramResponse = null;
-
+                List<ColorCodeResponse>? paramResponse = null;
+                
                 try
                 {
                     // First, try to parse as JsonElement to inspect structure
                     var jsonDoc = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
-
-                    // Log the structure of the first item if it's an array
-                    if (jsonDoc.ValueKind == JsonValueKind.Array && jsonDoc.GetArrayLength() > 0)
+                    
+                    // Use case-insensitive property matching
+                    var options = new JsonSerializerOptions
                     {
-                        var firstItem = jsonDoc[0];
-                        var propertyNames = firstItem.EnumerateObject().Select(p => p.Name).ToList();
-                        _logger.LogInformation("First item structure - All Properties: {Properties}", string.Join(", ", propertyNames));
-
-                        // Check for common property names that might contain the material data
-                        foreach (var propName in propertyNames)
-                        {
-                            var prop = firstItem.GetProperty(propName);
-                            _logger.LogInformation("Property '{PropertyName}' type: {Type}, ValueKind: {ValueKind}",
-                                propName, prop.GetType().Name, prop.ValueKind);
-                            if (prop.ValueKind == JsonValueKind.Object)
-                            {
-                                var subProps = prop.EnumerateObject().Select(sp => sp.Name).ToList();
-                                _logger.LogInformation("  Sub-properties of '{PropertyName}': {SubProperties}",
-                                    propName, string.Join(", ", subProps));
-                            }
-                        }
-                    }
-
+                        PropertyNameCaseInsensitive = true
+                    };
+                    
                     // Check if it's a direct array
                     if (jsonDoc.ValueKind == JsonValueKind.Array)
                     {
-                        // Try deserializing with case-insensitive property matching
-                        var options = new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        };
-                        paramResponse = JsonSerializer.Deserialize<List<ParameterResponse>>(jsonResponse, options);
+                        paramResponse = JsonSerializer.Deserialize<List<ColorCodeResponse>>(jsonResponse, options);
                     }
                     // Check if it's wrapped in a Data property
                     else if (jsonDoc.TryGetProperty("Data", out var data) && data.ValueKind == JsonValueKind.Array)
                     {
-                        var options = new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        };
-                        paramResponse = JsonSerializer.Deserialize<List<ParameterResponse>>(data.GetRawText(), options);
+                        paramResponse = JsonSerializer.Deserialize<List<ColorCodeResponse>>(data.GetRawText(), options);
                     }
                     // Check if it's wrapped in other common properties
                     else if (jsonDoc.TryGetProperty("items", out var items) && items.ValueKind == JsonValueKind.Array)
                     {
-                        var options = new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        };
-                        paramResponse = JsonSerializer.Deserialize<List<ParameterResponse>>(items.GetRawText(), options);
+                        paramResponse = JsonSerializer.Deserialize<List<ColorCodeResponse>>(items.GetRawText(), options);
                     }
                     else if (jsonDoc.TryGetProperty("results", out var results) && results.ValueKind == JsonValueKind.Array)
                     {
-                        var options = new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        };
-                        paramResponse = JsonSerializer.Deserialize<List<ParameterResponse>>(results.GetRawText(), options);
+                        paramResponse = JsonSerializer.Deserialize<List<ColorCodeResponse>>(results.GetRawText(), options);
                     }
                     else
                     {
                         _logger.LogWarning("Unexpected JSON structure. Root kind: {ValueKind}", jsonDoc.ValueKind);
                         // Try direct deserialization with case-insensitive matching
-                        var options = new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        };
-                        paramResponse = JsonSerializer.Deserialize<List<ParameterResponse>>(jsonResponse, options);
-                    }
-
-                    // If Substrate is still null, try manual mapping
-                    if (paramResponse != null && paramResponse.Count > 0 && paramResponse[0].Substrate == null)
-                    {
-                        _logger.LogWarning("Substrate is null after deserialization. Attempting manual mapping...");
-                        paramResponse = ManualMapMaterials(jsonDoc);
+                        paramResponse = JsonSerializer.Deserialize<List<ColorCodeResponse>>(jsonResponse, options);
                     }
                 }
                 catch (JsonException jsonEx)
                 {
                     _logger.LogError(jsonEx, "JSON deserialization error. Response: {Response}", jsonResponse);
-                    throw new Exception($"Failed to parse materials response: {jsonEx.Message}. Response: {jsonResponse.Substring(0, Math.Min(500, jsonResponse.Length))}", jsonEx);
+                    throw new Exception($"Failed to parse color codes response: {jsonEx.Message}. Response: {jsonResponse.Substring(0, Math.Min(500, jsonResponse.Length))}", jsonEx);
                 }
 
                 if (paramResponse != null && paramResponse.Count > 0)
                 {
-                    // Filter out blocked items and items not allowed for RFQ
-                    paramResponse = paramResponse.Where(m => !m.Blocked && m.AllowRFQ).ToList();
-
+                    _logger.LogInformation("Total color codes received from API: {Count}", paramResponse.Count);
+                    
+                    // Note: The API URL already has a filter: AllowRFQ eq true and Blocked ne true
+                    // We're keeping this server-side filter as a safety check, but it should match the API filter
+                    // Only filter if the values are explicitly set (null = allow, since API already filtered)
+                    var beforeFilter = paramResponse.Count;
+                    paramResponse = paramResponse.Where(cc => 
+                        (cc.Blocked == null || cc.Blocked == false) && 
+                        (cc.AllowRFQ == null || cc.AllowRFQ == true)).ToList();
+                    _logger.LogInformation("Color codes received: {BeforeCount}, after filtering: {AfterCount} (removed {Removed})", 
+                        beforeFilter, paramResponse.Count, beforeFilter - paramResponse.Count);
+                    
                     foreach (var param in paramResponse)
                     {
                         // Handle both "Descriptions" and "Discriptions" (typo in API)
-                        // Try Substrate first, then Material (property name may vary)
-                        var materialData = param.Substrate ?? param.Material;
-                        var descriptions = materialData?.Descriptions ?? materialData?.Descriptions;
-                        if (descriptions != null && descriptions.Count > 0)
+                        var descriptions = param.ColourBacking?.Descriptions ?? param.ColourBacking?.Discriptions;
+                        if(descriptions != null && descriptions.Count > 0)
                         {
-                            foreach (var desc in descriptions)
-                            {
-                                // Log each description for debugging
-                                _logger.LogDebug("Material ID: {MaterialID}, Language: {Language}, Description: {Description}",
-                                    materialData?.Id, desc.ISOLanguageCode, desc.Description);
-                            }
+                            var enUSDesc = descriptions.FirstOrDefault(d =>
+                                d.ISOLanguageCode != null && d.ISOLanguageCode.Equals("en-US", StringComparison.OrdinalIgnoreCase));
+                            var displayDesc = enUSDesc?.Description ?? descriptions[0]?.Description ?? "Unknown";
+                            
+                            _logger.LogInformation("Color Code ID: {ColorCodeID}, Description: {Description}, Blocked: {Blocked}, AllowRFQ: {AllowRFQ}",
+                                param.ColourBacking?.Id, displayDesc, param.Blocked, param.AllowRFQ);
                         }
                         else
                         {
-                            _logger.LogWarning("No descriptions found for Material ID: {MaterialID}", materialData?.Id ?? "Unknown");
+                            _logger.LogWarning("No descriptions found for Color Code ID: {ColorCodeID}", param.ColourBacking?.Id ?? "Unknown");
                         }
                     }
-
-
-                    // Sort materials alphabetically by their display description
-                    paramResponse = paramResponse.OrderBy(material =>
+                    
+                    // Sort color codes alphabetically by their display description
+                    paramResponse = paramResponse.OrderBy(colorCode =>
                     {
                         // Get description - prefer en-US, otherwise use first available
                         // Handle both "Descriptions" and "Discriptions" (typo in API)
-                        // Try Substrate first, then Material (property name may vary)
-                        var materialData = material.Substrate ?? material.Material;
-                        var descriptions = materialData?.Descriptions ?? materialData?.Descriptions;
+                        var descriptions = colorCode.ColourBacking?.Descriptions ?? colorCode.ColourBacking?.Discriptions;
                         if (descriptions != null && descriptions.Count > 0)
                         {
                             var enUSDesc = descriptions.FirstOrDefault(d =>
@@ -489,191 +450,19 @@ namespace WiseLabels.Pages.Api
                         }
                         return string.Empty;
                     }, StringComparer.OrdinalIgnoreCase).ToList();
-
-                    _logger.LogInformation("Returning {Count} materials after filtering and sorting", paramResponse.Count);
-                    return (paramResponse);
+                    
+                    return paramResponse;
                 }
-
-                _logger.LogWarning("No materials found in response");
-                return (new List<ParameterResponse>());
+                
+                _logger.LogWarning("No color codes found in response");
+                return new List<ColorCodeResponse>();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Exception while fetching materials");
+                _logger.LogError(ex, "Exception while fetching color codes");
                 throw;
             }
         }
-
-        private List<ParameterResponse> ManualMapMaterials(JsonElement jsonDoc)
-        {
-            var result = new List<ParameterResponse>();
-
-            JsonElement arrayElement;
-            if (jsonDoc.ValueKind == JsonValueKind.Array)
-            {
-                arrayElement = jsonDoc;
-            }
-            else if (jsonDoc.TryGetProperty("Data", out var data) && data.ValueKind == JsonValueKind.Array)
-            {
-                arrayElement = data;
-            }
-            else if (jsonDoc.TryGetProperty("items", out var items) && items.ValueKind == JsonValueKind.Array)
-            {
-                arrayElement = items;
-            }
-            else if (jsonDoc.TryGetProperty("results", out var results) && results.ValueKind == JsonValueKind.Array)
-            {
-                arrayElement = results;
-            }
-            else
-            {
-                _logger.LogWarning("Cannot find array in JSON structure");
-                return result;
-            }
-
-            foreach (var item in arrayElement.EnumerateArray())
-            {
-                var param = new ParameterResponse();
-
-                // Get Blocked and AllowRFQ
-                if (item.TryGetProperty("Blocked", out var blocked))
-                {
-                    param.Blocked = blocked.GetBoolean();
-                }
-                if (item.TryGetProperty("AllowRFQ", out var allowRFQ))
-                {
-                    param.AllowRFQ = allowRFQ.GetBoolean();
-                }
-
-                // Try to find the property containing material data (case-insensitive)
-                // Look for any object property that has an "Id" property (indicating it's the material data container)
-                JsonElement? substrateElement = null;
-                foreach (var prop in item.EnumerateObject())
-                {
-                    // Skip Blocked and AllowRFQ - we're looking for the nested object with Id and Descriptions
-                    if (string.Equals(prop.Name, "Blocked", StringComparison.OrdinalIgnoreCase) ||
-                        string.Equals(prop.Name, "AllowRFQ", StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    // If it's an object, check if it has an "Id" property (indicating it's the material data)
-                    if (prop.Value.ValueKind == JsonValueKind.Object)
-                    {
-                        if (prop.Value.TryGetProperty("Id", out var idCheck) ||
-                            prop.Value.TryGetProperty("id", out var idCheck2))
-                        {
-                            substrateElement = prop.Value;
-                            _logger.LogDebug("Found material data in property: {PropertyName}", prop.Name);
-                            break;
-                        }
-                    }
-                }
-
-                // If we found the substrate element, extract Id and Descriptions
-                if (substrateElement.HasValue && substrateElement.Value.ValueKind == JsonValueKind.Object)
-                {
-                    var substrate = new SubstrateData();
-                    var sub = substrateElement.Value;
-
-                    // Get Id (case-insensitive)
-                    foreach (var prop in sub.EnumerateObject())
-                    {
-                        if (string.Equals(prop.Name, "Id", StringComparison.OrdinalIgnoreCase))
-                        {
-                            substrate.Id = prop.Value.GetString();
-                            break;
-                        }
-                    }
-
-                    // Get Descriptions (case-insensitive)
-                    foreach (var prop in sub.EnumerateObject())
-                    {
-                        if (string.Equals(prop.Name, "Descriptions", StringComparison.OrdinalIgnoreCase) &&
-                            prop.Value.ValueKind == JsonValueKind.Array)
-                        {
-                            var descriptions = new List<Descriptions>();
-                            foreach (var desc in prop.Value.EnumerateArray())
-                            {
-                                var description = new Descriptions();
-                                foreach (var descProp in desc.EnumerateObject())
-                                {
-                                    if (string.Equals(descProp.Name, "ISOLanguageCode", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        description.ISOLanguageCode = descProp.Value.GetString();
-                                    }
-                                    else if (string.Equals(descProp.Name, "Description", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        description.Description = descProp.Value.GetString();
-                                    }
-                                }
-                                descriptions.Add(description);
-                            }
-                            substrate.Descriptions = descriptions;
-                            break;
-                        }
-                    }
-
-                    // Assign to both Substrate and Material properties to handle either property name
-                    param.Substrate = substrate;
-                    param.Material = substrate;
-                }
-
-                result.Add(param);
-            }
-
-            _logger.LogInformation("Manually mapped {Count} materials", result.Count);
-            return result;
-        }
-        
-        /// <summary>
-        /// Queries the database to get material IDs that are allowed for the given printing selection.
-        /// This method is called server-side only - no database information is exposed to the client.
-        /// </summary>
-        /// <param name="printing">The printing selection (ColorCode ID or description text)</param>
-        /// <returns>List of allowed material IDs, or null if no filtering should be applied</returns>
-        private async Task<List<string>?> GetAllowedMaterialIdsAsync(string printing)
-        {
-            try
-            {
-                // TODO: Replace this with the actual database query based on your schema
-                // The query should return material IDs that are compatible with the given printing type
-                // 
-                // Example query structure (adjust table/column names to match your schema):
-                // SELECT DISTINCT MaterialId 
-                // FROM MaterialPrintingTypes 
-                // WHERE PrintingTypeId = @printingId OR PrintingTypeDescription LIKE @printing
-                //
-                // Or if the relationship is stored differently:
-                // SELECT DISTINCT s.SubstrateId
-                // FROM Substrates s
-                // INNER JOIN SubstratePrintingTypes spt ON s.SubstrateId = spt.SubstrateId
-                // INNER JOIN PrintingTypes pt ON spt.PrintingTypeId = pt.PrintingTypeId
-                // WHERE pt.PrintingTypeId = @printingId OR pt.Description LIKE @printing
-                
-                _logger.LogInformation("Querying database for materials allowed for printing: {Printing}", printing);
-                
-                // For now, return null to indicate no filtering (returns all materials)
-                // Once you provide the table/column names, I'll implement the actual query
-                // 
-                // You can use either:
-                // 1. Raw SQL: _dbContext.Database.SqlQueryRaw<string>("SELECT ...")
-                // 2. LINQ: _dbContext.TableName.Where(...).Select(...).ToListAsync()
-                // 3. Repository pattern: _substrateRepository.GetMaterialsByPrintingAsync(printing)
-                
-                await Task.CompletedTask; // Placeholder for async operation
-                
-                _logger.LogWarning("GetAllowedMaterialIdsAsync not yet implemented - returning null (no filtering)");
-                return null; // Return null to indicate no filtering should be applied
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error querying database for allowed materials. Printing: {Printing}", printing);
-                // Return null on error to allow all materials rather than blocking everything
-                return null;
-            }
-        }
-
     }
 }
 
