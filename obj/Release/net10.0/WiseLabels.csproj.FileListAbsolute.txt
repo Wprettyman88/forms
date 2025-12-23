@@ -23,7 +23,6 @@ C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\scopedcss\Pages\Sha
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\scopedcss\bundle\WiseLabels.styles.css
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\scopedcss\projectbundle\WiseLabels.bundle.scp.css
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\compressed\naxsbbxeos-{0}-61n19gt1b8-61n19gt1b8.gz
-C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\compressed\y09rpuo3s5-{0}-xtxxf3hu2r-xtxxf3hu2r.gz
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\compressed\07wza090qo-{0}-bqjiyaj88i-bqjiyaj88i.gz
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\compressed\9jsa95uerk-{0}-c2jlpeoesf-c2jlpeoesf.gz
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\compressed\e00gujoxzn-{0}-erw9l3u2r3-erw9l3u2r3.gz
@@ -144,3 +143,5 @@ C:\Users\pmenefee\source\WiseLink-Labels\bin\Release\net10.0\CERM.DataAccess.dll
 C:\Users\pmenefee\source\WiseLink-Labels\bin\Release\net10.0\CERM.DataAccess.pdb
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\WiseLabels.csproj.AssemblyReference.cache
 C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\WiseLabels.csproj.Up2Date
+C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\compressed\y09rpuo3s5-{0}-8lekb98ipv-8lekb98ipv.gz
+C:\Users\pmenefee\source\WiseLink-Labels\obj\Release\net10.0\compressed\n7z96ek46h-{0}-c9o00yo65i-c9o00yo65i.gz

@@ -35,6 +35,7 @@ C:\Users\pmenefee\source\WiseLink-Labels\wwwroot\lib\bootstrap\dist\css\bootstra
 C:\Users\pmenefee\source\WiseLink-Labels\wwwroot\lib\bootstrap\dist\css\bootstrap.min.css
 C:\Users\pmenefee\source\WiseLink-Labels\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.css.map
 C:\Users\pmenefee\source\WiseLink-Labels\wwwroot\lib\bootstrap\dist\js\bootstrap.min.js.map
+C:\Users\pmenefee\source\WiseLink-Labels\wwwroot\js\quote.js
 C:\Users\pmenefee\source\WiseLink-Labels\wwwroot\favicon.ico
 C:\Users\pmenefee\source\WiseLink-Labels\wwwroot\lib\jquery-validation\LICENSE.md
 C:\Users\pmenefee\source\WiseLink-Labels\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js
@@ -62,6 +63,7 @@ C:\Users\pmenefee\source\WiseLink-Labels\wwwroot\js\site.js
 C:\Users\pmenefee\source\WiseLink-Labels\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js.map
 wwwroot\css\site.css
 wwwroot\favicon.ico
+wwwroot\js\quote.js
 wwwroot\js\site.js
 wwwroot\lib\bootstrap\LICENSE
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css

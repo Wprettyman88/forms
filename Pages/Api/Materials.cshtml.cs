@@ -11,26 +11,23 @@ namespace WiseLabels.Pages.Api
 {
     public class ParameterResponse
     {
-        [JsonPropertyName("Substrate")]
-        public SubstrateData? Substrate { get; set; }
-        
-        [JsonPropertyName("Material")]
-        public SubstrateData? Material { get; set; }
-
-        [JsonPropertyName("Blocked")]
-        public bool Blocked { get; set; }
-
-        [JsonPropertyName("AllowRFQ")]
-        public bool AllowRFQ { get; set; }
-    }
-
-    public class SubstrateData
-    {
         [JsonPropertyName("Id")]
         public string? Id { get; set; }
 
         [JsonPropertyName("Descriptions")]
-        public List<Descriptions>? Descriptions { get; set; }        
+        public List<Descriptions>? Descriptions { get; set; }
+
+        [JsonPropertyName("Website")]
+        public string? Website { get; set; }
+
+        [JsonPropertyName("AllowQuickQuote")]
+        public bool AllowQuickQuote { get; set; }
+
+        [JsonPropertyName("AllowRFQ")]
+        public bool AllowRFQ { get; set; }
+
+        [JsonPropertyName("Blocked")]
+        public bool Blocked { get; set; }
     }
 
     public class Descriptions
@@ -432,10 +429,10 @@ namespace WiseLabels.Pages.Api
                         paramResponse = JsonSerializer.Deserialize<List<ParameterResponse>>(jsonResponse, options);
                     }
 
-                    // If Substrate is still null, try manual mapping
-                    if (paramResponse != null && paramResponse.Count > 0 && paramResponse[0].Substrate == null)
+                    // If Id is still null after deserialization, try manual mapping
+                    if (paramResponse != null && paramResponse.Count > 0 && string.IsNullOrEmpty(paramResponse[0].Id))
                     {
-                        _logger.LogWarning("Substrate is null after deserialization. Attempting manual mapping...");
+                        _logger.LogWarning("Id is null after deserialization. Attempting manual mapping...");
                         paramResponse = ManualMapMaterials(jsonDoc);
                     }
                 }
@@ -447,44 +444,18 @@ namespace WiseLabels.Pages.Api
 
                 if (paramResponse != null && paramResponse.Count > 0)
                 {
-                    // Filter out blocked items and items not allowed for RFQ
-                    paramResponse = paramResponse.Where(m => !m.Blocked && m.AllowRFQ).ToList();
+                    // Filter only on AllowRFQ flag being true
+                    paramResponse = paramResponse.Where(m => m.AllowRFQ).ToList();
 
-                    foreach (var param in paramResponse)
-                    {
-                        // Handle both "Descriptions" and "Discriptions" (typo in API)
-                        // Try Substrate first, then Material (property name may vary)
-                        var materialData = param.Substrate ?? param.Material;
-                        var descriptions = materialData?.Descriptions ?? materialData?.Descriptions;
-                        if (descriptions != null && descriptions.Count > 0)
-                        {
-                            foreach (var desc in descriptions)
-                            {
-                                // Log each description for debugging
-                                _logger.LogDebug("Material ID: {MaterialID}, Language: {Language}, Description: {Description}",
-                                    materialData?.Id, desc.ISOLanguageCode, desc.Description);
-                            }
-                        }
-                        else
-                        {
-                            _logger.LogWarning("No descriptions found for Material ID: {MaterialID}", materialData?.Id ?? "Unknown");
-                        }
-                    }
-
-
-                    // Sort materials alphabetically by their display description
+                    // Sort materials alphabetically by their display description (en-US)
                     paramResponse = paramResponse.OrderBy(material =>
                     {
-                        // Get description - prefer en-US, otherwise use first available
-                        // Handle both "Descriptions" and "Discriptions" (typo in API)
-                        // Try Substrate first, then Material (property name may vary)
-                        var materialData = material.Substrate ?? material.Material;
-                        var descriptions = materialData?.Descriptions ?? materialData?.Descriptions;
-                        if (descriptions != null && descriptions.Count > 0)
+                        if (material.Descriptions != null && material.Descriptions.Count > 0)
                         {
-                            var enUSDesc = descriptions.FirstOrDefault(d =>
+                            // Prefer en-US description
+                            var enUSDesc = material.Descriptions.FirstOrDefault(d =>
                                 d.ISOLanguageCode != null && d.ISOLanguageCode.Equals("en-US", StringComparison.OrdinalIgnoreCase));
-                            var desc = enUSDesc ?? descriptions[0];
+                            var desc = enUSDesc ?? material.Descriptions[0];
                             return desc.Description ?? string.Empty;
                         }
                         return string.Empty;
@@ -535,88 +506,63 @@ namespace WiseLabels.Pages.Api
             {
                 var param = new ParameterResponse();
 
-                // Get Blocked and AllowRFQ
-                if (item.TryGetProperty("Blocked", out var blocked))
+                // Get Id (case-insensitive)
+                if (item.TryGetProperty("Id", out var idProp) || item.TryGetProperty("id", out idProp))
                 {
-                    param.Blocked = blocked.GetBoolean();
-                }
-                if (item.TryGetProperty("AllowRFQ", out var allowRFQ))
-                {
-                    param.AllowRFQ = allowRFQ.GetBoolean();
+                    param.Id = idProp.GetString();
                 }
 
-                // Try to find the property containing material data (case-insensitive)
-                // Look for any object property that has an "Id" property (indicating it's the material data container)
-                JsonElement? substrateElement = null;
-                foreach (var prop in item.EnumerateObject())
+                // Get Descriptions array (case-insensitive)
+                if ((item.TryGetProperty("Descriptions", out var descriptionsProp) || 
+                     item.TryGetProperty("descriptions", out descriptionsProp)) && 
+                    descriptionsProp.ValueKind == JsonValueKind.Array)
                 {
-                    // Skip Blocked and AllowRFQ - we're looking for the nested object with Id and Descriptions
-                    if (string.Equals(prop.Name, "Blocked", StringComparison.OrdinalIgnoreCase) ||
-                        string.Equals(prop.Name, "AllowRFQ", StringComparison.OrdinalIgnoreCase))
+                    var descriptions = new List<Descriptions>();
+                    foreach (var desc in descriptionsProp.EnumerateArray())
                     {
-                        continue;
-                    }
-
-                    // If it's an object, check if it has an "Id" property (indicating it's the material data)
-                    if (prop.Value.ValueKind == JsonValueKind.Object)
-                    {
-                        if (prop.Value.TryGetProperty("Id", out var idCheck) ||
-                            prop.Value.TryGetProperty("id", out var idCheck2))
+                        var description = new Descriptions();
+                        if (desc.TryGetProperty("ISOLanguageCode", out var langCodeProp) || 
+                            desc.TryGetProperty("isoLanguageCode", out langCodeProp) ||
+                            desc.TryGetProperty("ISOLanguagecode", out langCodeProp))
                         {
-                            substrateElement = prop.Value;
-                            _logger.LogDebug("Found material data in property: {PropertyName}", prop.Name);
-                            break;
+                            description.ISOLanguageCode = langCodeProp.GetString();
                         }
+                        if (desc.TryGetProperty("Description", out var descProp) || 
+                            desc.TryGetProperty("description", out descProp))
+                        {
+                            description.Description = descProp.GetString();
+                        }
+                        descriptions.Add(description);
                     }
+                    param.Descriptions = descriptions;
                 }
 
-                // If we found the substrate element, extract Id and Descriptions
-                if (substrateElement.HasValue && substrateElement.Value.ValueKind == JsonValueKind.Object)
+                // Get AllowRFQ (case-insensitive)
+                if (item.TryGetProperty("AllowRFQ", out var allowRFQProp) || 
+                    item.TryGetProperty("allowRFQ", out allowRFQProp))
                 {
-                    var substrate = new SubstrateData();
-                    var sub = substrateElement.Value;
+                    param.AllowRFQ = allowRFQProp.GetBoolean();
+                }
 
-                    // Get Id (case-insensitive)
-                    foreach (var prop in sub.EnumerateObject())
-                    {
-                        if (string.Equals(prop.Name, "Id", StringComparison.OrdinalIgnoreCase))
-                        {
-                            substrate.Id = prop.Value.GetString();
-                            break;
-                        }
-                    }
+                // Get Blocked (case-insensitive)
+                if (item.TryGetProperty("Blocked", out var blockedProp) || 
+                    item.TryGetProperty("blocked", out blockedProp))
+                {
+                    param.Blocked = blockedProp.GetBoolean();
+                }
 
-                    // Get Descriptions (case-insensitive)
-                    foreach (var prop in sub.EnumerateObject())
-                    {
-                        if (string.Equals(prop.Name, "Descriptions", StringComparison.OrdinalIgnoreCase) &&
-                            prop.Value.ValueKind == JsonValueKind.Array)
-                        {
-                            var descriptions = new List<Descriptions>();
-                            foreach (var desc in prop.Value.EnumerateArray())
-                            {
-                                var description = new Descriptions();
-                                foreach (var descProp in desc.EnumerateObject())
-                                {
-                                    if (string.Equals(descProp.Name, "ISOLanguageCode", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        description.ISOLanguageCode = descProp.Value.GetString();
-                                    }
-                                    else if (string.Equals(descProp.Name, "Description", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        description.Description = descProp.Value.GetString();
-                                    }
-                                }
-                                descriptions.Add(description);
-                            }
-                            substrate.Descriptions = descriptions;
-                            break;
-                        }
-                    }
+                // Get Website (optional)
+                if (item.TryGetProperty("Website", out var websiteProp) || 
+                    item.TryGetProperty("website", out websiteProp))
+                {
+                    param.Website = websiteProp.GetString();
+                }
 
-                    // Assign to both Substrate and Material properties to handle either property name
-                    param.Substrate = substrate;
-                    param.Material = substrate;
+                // Get AllowQuickQuote (optional)
+                if (item.TryGetProperty("AllowQuickQuote", out var allowQuickQuoteProp) || 
+                    item.TryGetProperty("allowQuickQuote", out allowQuickQuoteProp))
+                {
+                    param.AllowQuickQuote = allowQuickQuoteProp.GetBoolean();
                 }
 
                 result.Add(param);

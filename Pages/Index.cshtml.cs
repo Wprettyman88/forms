@@ -2,22 +2,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using WiseLabels.Models;
 using System.Text.Json;
-using CERM.DataAccess.Models;
-using CERM.DataAccess.Repositories.Substrate;
 
 namespace WiseLabels.Pages
 {
     public class IndexModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;
-        private readonly ISubstrateRepository _substrateRepo;
 
-        public Substrates? Substrate { get; set; }
-
-        public IndexModel(ILogger<IndexModel> logger, ISubstrateRepository substrateRepo)
+        public IndexModel(ILogger<IndexModel> logger)
         {
             _logger = logger;
-            _substrateRepo = substrateRepo;
         }
 
         public QuoteRequest? SavedQuoteRequest { get; set; }
@@ -38,20 +32,6 @@ namespace WiseLabels.Pages
                     _logger.LogError(ex, "Error deserializing quote request from TempData");
                     SavedQuoteRequest = null;
                 }
-            }
-            
-            try
-            {
-                Substrate = await _substrateRepo.GetSubstrateByIdAsync("000006");
-
-                if (Substrate == null)
-                {
-                    _logger.LogWarning("Substrate with ID '000006' not found.");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while retrieving the substrate.");
             }
         }
 

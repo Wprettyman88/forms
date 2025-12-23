@@ -26,6 +26,10 @@ build_property.EnableCodeStyleSeverity =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBpXENvbG9yQ29kZXMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/pmenefee/source/WiseLink-Labels/Pages/Api/CuttingDie.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBpXEN1dHRpbmdEaWUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/pmenefee/source/WiseLink-Labels/Pages/Api/Materials.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXBpXE1hdGVyaWFscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 

@@ -406,35 +406,6 @@ namespace WiseLabels.Pages.Api
                 {
                     _logger.LogInformation("Total color codes received from API: {Count}", paramResponse.Count);
                     
-                    // Note: The API URL already has a filter: AllowRFQ eq true and Blocked ne true
-                    // We're keeping this server-side filter as a safety check, but it should match the API filter
-                    // Only filter if the values are explicitly set (null = allow, since API already filtered)
-                    var beforeFilter = paramResponse.Count;
-                    paramResponse = paramResponse.Where(cc => 
-                        (cc.Blocked == null || cc.Blocked == false) && 
-                        (cc.AllowRFQ == null || cc.AllowRFQ == true)).ToList();
-                    _logger.LogInformation("Color codes received: {BeforeCount}, after filtering: {AfterCount} (removed {Removed})", 
-                        beforeFilter, paramResponse.Count, beforeFilter - paramResponse.Count);
-                    
-                    foreach (var param in paramResponse)
-                    {
-                        // Handle both "Descriptions" and "Discriptions" (typo in API)
-                        var descriptions = param.ColourBacking?.Descriptions ?? param.ColourBacking?.Discriptions;
-                        if(descriptions != null && descriptions.Count > 0)
-                        {
-                            var enUSDesc = descriptions.FirstOrDefault(d =>
-                                d.ISOLanguageCode != null && d.ISOLanguageCode.Equals("en-US", StringComparison.OrdinalIgnoreCase));
-                            var displayDesc = enUSDesc?.Description ?? descriptions[0]?.Description ?? "Unknown";
-                            
-                            _logger.LogInformation("Color Code ID: {ColorCodeID}, Description: {Description}, Blocked: {Blocked}, AllowRFQ: {AllowRFQ}",
-                                param.ColourBacking?.Id, displayDesc, param.Blocked, param.AllowRFQ);
-                        }
-                        else
-                        {
-                            _logger.LogWarning("No descriptions found for Color Code ID: {ColorCodeID}", param.ColourBacking?.Id ?? "Unknown");
-                        }
-                    }
-                    
                     // Sort color codes alphabetically by their display description
                     paramResponse = paramResponse.OrderBy(colorCode =>
                     {
