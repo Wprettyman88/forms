@@ -38,15 +38,14 @@ namespace WiseLabels.Pages.Api
                 }
 
                 // Determine materie_ value based on printing text
-                // materie_ = 1 for "rotary" or "flexo", materie_ = 2 for "digital"
+                // materie_ = 1 for "rotary", materie_ = 2 for "digital"
                 int materie = 2; // Default to digital
                 string printingLower = printing.ToLowerInvariant();
                 
-                if (printingLower.Contains("rotary") || printingLower.Contains("flexo"))
+                if (printingLower.Contains("flexo"))
                 {
                     materie = 1;
-                    string matchedTerm = printingLower.Contains("rotary") ? "rotary" : "flexo";
-                    _logger.LogInformation("Printing option contains '{Term}' - using materie_ = 1", matchedTerm);
+                    _logger.LogInformation("Printing option contains 'flexo' (rotary die type) - using materie_ = 1");
                 }
                 else if (printingLower.Contains("digital"))
                 {
@@ -55,7 +54,7 @@ namespace WiseLabels.Pages.Api
                 }
                 else
                 {
-                    _logger.LogWarning("Printing option '{Printing}' does not contain 'rotary', 'flexo', or 'digital' - defaulting to materie_ = 2 (digital)", printing);
+                    _logger.LogWarning("Printing option '{Printing}' does not contain 'rotary' or 'digital' - defaulting to materie_ = 2 (digital)", printing);
                 }
 
                 // Execute SQL query: SELECT stns_ref, stns_oms FROM stnspr__ WHERE materie_ = @materie
@@ -75,8 +74,7 @@ namespace WiseLabels.Pages.Api
                     }
 
                     // Use parameterized SQL query to prevent SQL injection
-                    // Filter out rows where stns_oms is empty or NULL
-                    var sql = "SELECT stns_ref, stns_oms FROM stnspr__ WHERE materie_ = @materie AND stns_oms IS NOT NULL AND stns_oms != ''";
+                    var sql = "SELECT stns_ref, stns_oms FROM stnspr__ WHERE materie_ = @materie AND stns_oms IS NOT NULL AND stns_oms <> '' AND stns_oms <> 'UNKOWN' ORDER BY stns_oms DESC";
                     
                     using (var connection = new SqlConnection(connectionString))
                     {
