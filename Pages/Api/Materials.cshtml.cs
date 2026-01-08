@@ -537,12 +537,12 @@ namespace WiseLabels.Pages.Api
                     param.Descriptions = descriptions;
                 }
 
-                // Get AllowRFQ (case-insensitive)
-                if (item.TryGetProperty("AllowRFQ", out var allowRFQProp) || 
-                    item.TryGetProperty("allowRFQ", out allowRFQProp))
-                {
-                    param.AllowRFQ = allowRFQProp.GetBoolean();
-                }
+                //// Get AllowRFQ (case-insensitive)
+                //if (item.TryGetProperty("AllowRFQ", out var allowRFQProp) || 
+                //    item.TryGetProperty("allowRFQ", out allowRFQProp))
+                //{
+                //    param.AllowRFQ = allowRFQProp.GetBoolean();
+                //}
 
                 // Get Blocked (case-insensitive)
                 if (item.TryGetProperty("Blocked", out var blockedProp) || 

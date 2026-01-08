@@ -74,7 +74,7 @@ namespace WiseLabels.Pages.Api
                     }
 
                     // Use parameterized SQL query to prevent SQL injection
-                    var sql = "SELECT stns_ref, stns_oms FROM stnspr__ WHERE materie_ = @materie AND stns_oms IS NOT NULL AND stns_oms <> '' AND stns_oms <> 'UNKOWN' ORDER BY stns_oms DESC";
+                    var sql = "SELECT stns_ref, stns_oms FROM stnspr__ WHERE materie_ = @materie AND weblabel = 'Y' AND stns_oms IS NOT NULL AND stns_oms <> '' AND stns_oms <> 'UNKOWN' ORDER BY stns_oms DESC";
                     
                     using (var connection = new SqlConnection(connectionString))
                     {
