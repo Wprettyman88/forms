@@ -1,5 +1,6 @@
 using WiseLabels.Models;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace WiseLabels.Services
 {
@@ -7,6 +8,7 @@ namespace WiseLabels.Services
     {
         Task<string> StoreQuoteAsync(QuoteRequest quote);
         Task<bool> SubmitToCermApiAsync(QuoteRequest quote);
+        CermApiPayload TransformToApiPayload(QuoteRequest quote);
     }
 
     public class QuoteService : IQuoteService
@@ -45,6 +47,48 @@ namespace WiseLabels.Services
             return quoteId;
         }
 
+        public CermApiPayload TransformToApiPayload(QuoteRequest quote)
+        {
+            // Return the API payload structure with example/dummy values
+            // TODO: Map form elements to populate the actual values
+            
+            _logger.LogDebug("Transforming quote to API payload. FinishValue: '{FinishValue}', Finish: '{Finish}'", 
+                quote.FinishValue ?? "null", quote.Finish ?? "null");
+            
+            var payload = new CermApiPayload
+            {
+                CustomerId = _configuration.GetConnectionString("CustomerID") ?? string.Empty,
+                ContactId = _configuration.GetConnectionString("ContactID") ?? string.Empty,
+                WindingId = "10", // Sheeted
+                Outline = quote.ShapeValue ?? quote.Shape ?? null, // Map from shape ID (use ShapeValue which contains the ID from API)
+                DieSizeId = quote.CuttingDieValue ?? quote.CuttingDie ?? null, // Map from cuttingDieValue
+                SubstrateId = quote.MaterialValue ?? quote.Material ?? null, // Map from materialValue
+                Description = quote.Description,
+                PackingProcedureId = "152",
+                PackingPriority = "Diameter",
+                PackingNumber = 500,
+                NumberOfProducts = int.TryParse(quote.TotalQuantity, out var quantity) ? quantity : 1,
+                Width = double.TryParse(quote.LabelWidth, out var width) ? width : null,
+                Height = double.TryParse(quote.LabelHeight, out var height) ? height : null,
+                Radius = double.TryParse(quote.Diameter, out var diameter) ? diameter / 2.0 : null,
+                PressRuns = new List<PressRun>
+                {
+                    new PressRun
+                    {
+                        ColourCodeIdFront = quote.Printing ?? quote.PrintingValue ?? quote.ColorCodeValue ?? quote.ColorCode, // Use the ID value from printing field
+                        FinishingTypes = (!string.IsNullOrWhiteSpace(quote.FinishValue) || !string.IsNullOrWhiteSpace(quote.Finish)) 
+                            ? new List<string> { quote.FinishValue ?? quote.Finish ?? string.Empty } 
+                            : new List<string>() // Map finish value to FinishingTypes
+                    }
+                },
+                Quantities = !string.IsNullOrWhiteSpace(quote.TotalQuantity) && int.TryParse(quote.TotalQuantity, out var qty) 
+                    ? new List<int> { qty } 
+                    : new List<int>() // Map totalQuantity to Quantities array
+            };
+
+            return payload;
+        }
+
         public async Task<bool> SubmitToCermApiAsync(QuoteRequest quote)
         {
             // TODO: Implement CERM API submission
@@ -55,11 +99,22 @@ namespace WiseLabels.Services
             
             try
             {
+                // Transform QuoteRequest to CERM API format
+                var apiPayload = TransformToApiPayload(quote);
+                
+                // Serialize the payload for logging
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                };
+                var payloadJson = JsonSerializer.Serialize(apiPayload, jsonOptions);
+                _logger.LogInformation("Transformed API payload: {Payload}", payloadJson);
+                
                 // In real implementation, this would:
                 // 1. Get OAuth token (reuse authentication logic from Materials API)
-                // 2. Transform QuoteRequest to CERM API format
-                // 3. POST to appropriate CERM endpoint
-                // 4. Handle response and return success/failure
+                // 2. POST to appropriate CERM endpoint with apiPayload
+                // 3. Handle response and return success/failure
                 
                 var httpClient = _httpClientFactory.CreateClient();
                 httpClient.Timeout = TimeSpan.FromSeconds(30);

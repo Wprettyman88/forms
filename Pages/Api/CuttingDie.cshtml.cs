@@ -21,8 +21,34 @@ namespace WiseLabels.Pages.Api
 
         public class CuttingDieOption
         {
+            /// <summary>
+            /// Die Identifier
+            /// </summary>
             public string StnsRef { get; set; } = string.Empty;
+            /// <summary>
+            /// Die Description (size)
+            /// </summary>
             public string StnsOms { get; set; } = string.Empty;
+            /// <summary>
+            /// Die Radius
+            /// </summary>
+            public double Radius__ { get; set; } = 0;
+            /// <summary>
+            /// Across
+            /// </summary>
+            public double etiket_b { get; set; } = 0;
+            /// <summary>
+            /// Around
+            /// </summary>
+            public double etiket_h { get; set; } = 0;
+            /// <summary>
+            /// Step / Circumfrence
+            /// </summary>
+            public double omtrek__ { get; set; } = 0;
+            /// <summary>
+            /// Web Label Availability
+            /// </summary>
+            public string weblabel { get; set; } = string.Empty;
         }
 
         public async Task<IActionResult> OnGetAsync(string? printing = null)
@@ -74,7 +100,7 @@ namespace WiseLabels.Pages.Api
                     }
 
                     // Use parameterized SQL query to prevent SQL injection
-                    var sql = "SELECT stns_ref, stns_oms FROM stnspr__ WHERE materie_ = @materie AND weblabel = 'Y' AND stns_oms IS NOT NULL AND stns_oms <> '' AND stns_oms <> 'UNKOWN' ORDER BY stns_oms DESC";
+                    var sql = "SELECT stns_ref, stns_oms, etiket_b, etiket_h, radius__, omtrek__, weblabel FROM stnspr__ WHERE materie_ = @materie AND weblabel = 'Y' AND stns_oms IS NOT NULL AND stns_oms <> '' AND stns_oms <> 'UNKOWN' ORDER BY stns_oms DESC";
                     
                     using (var connection = new SqlConnection(connectionString))
                     {
@@ -88,14 +114,35 @@ namespace WiseLabels.Pages.Api
                             {
                                 int stnsRefOrdinal = reader.GetOrdinal("stns_ref");
                                 int stnsOmsOrdinal = reader.GetOrdinal("stns_oms");
-                                
+                                int etiket_bOrdinal = reader.GetOrdinal("etiket_b");
+                                int etiket_hOrdinal = reader.GetOrdinal("etiket_h");
+                                int Radius__Ordinal = reader.GetOrdinal("Radius__");
+                                int omtrek__Ordinal = reader.GetOrdinal("omtrek__");
+                                int weblabelOrdinal = reader.GetOrdinal("weblabel");
+
                                 while (await reader.ReadAsync())
                                 {
-                                    results.Add(new CuttingDieOption
-                                    {
-                                        StnsRef = reader.IsDBNull(stnsRefOrdinal) ? string.Empty : reader.GetString(stnsRefOrdinal),
-                                        StnsOms = reader.IsDBNull(stnsOmsOrdinal) ? string.Empty : reader.GetString(stnsOmsOrdinal)
-                                    });
+                                    CuttingDieOption cuttingDieOption = new CuttingDieOption();
+                                    cuttingDieOption.StnsRef = reader.IsDBNull(stnsRefOrdinal) ? string.Empty : reader.GetString(stnsRefOrdinal);
+                                    cuttingDieOption.StnsOms = reader.IsDBNull(stnsOmsOrdinal) ? string.Empty : reader.GetString(stnsOmsOrdinal);
+                                    cuttingDieOption.etiket_b = reader.IsDBNull(etiket_bOrdinal) ? 0 : reader.GetDouble(etiket_bOrdinal);
+                                    cuttingDieOption.etiket_h = reader.IsDBNull(etiket_hOrdinal) ? 0 : reader.GetDouble(etiket_hOrdinal);
+                                    cuttingDieOption.Radius__ = reader.IsDBNull(Radius__Ordinal) ? 0 : reader.GetDouble(Radius__Ordinal);
+                                    cuttingDieOption.omtrek__ = reader.IsDBNull(omtrek__Ordinal) ? 0 : reader.GetDouble(omtrek__Ordinal);
+                                    cuttingDieOption.weblabel = reader.IsDBNull(weblabelOrdinal) ? string.Empty : reader.GetString(weblabelOrdinal);
+
+                                    results.Add(cuttingDieOption);
+
+                                    //results.Add(new CuttingDieOption
+                                    //{
+                                    //    StnsRef = reader.IsDBNull(stnsRefOrdinal) ? string.Empty : reader.GetString(stnsRefOrdinal),
+                                    //    StnsOms = reader.IsDBNull(stnsOmsOrdinal) ? string.Empty : reader.GetString(stnsOmsOrdinal),
+                                    //    etiket_b = reader.IsDBNull(etiket_bOrdinal) ? string.Empty : reader.GetString(etiket_bOrdinal),
+                                    //    etiket_h = reader.IsDBNull(etiket_hOrdinal) ? string.Empty : reader.GetString(etiket_hOrdinal),
+                                    //    Radius__ = reader.IsDBNull(Radius__Ordinal) ? string.Empty : reader.GetString(Radius__Ordinal),
+                                    //    omtrek__ = reader.IsDBNull(omtrek__Ordinal) ? string.Empty : reader.GetString(omtrek__Ordinal),
+                                    //    weblabel = reader.IsDBNull(weblabelOrdinal) ? string.Empty : reader.GetString(weblabelOrdinal)
+                                    //});
                                 }
                             }
                         }

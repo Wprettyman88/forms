@@ -1,5 +1,5 @@
 ﻿document.addEventListener('DOMContentLoaded', function() {
-    const shapeInputs = document.querySelectorAll('input[name="shape"]');
+    // Note: shapeInputs are now loaded dynamically, so we don't query them here
     const widthInput = document.getElementById('label-width');
     const heightInput = document.getElementById('label-height');
     const diameterInput = document.getElementById('diameter');
@@ -18,7 +18,57 @@
     // Store materials data for filtering
     let allMaterialsData = null;
 
-    // Fetch Materials from API via server-side endpoint (only after Printing is selected)
+    // Fetch Materials from API via server-side endpoint (no prerequisites)
+    async function loadFinishing() {
+        try {
+            // Show loading state
+            materialLoading.style.display = 'block';
+            materialError.style.display = 'none';
+            materialSelect.style.opacity = '0.5';
+            materialSelect.disabled = false; // Materials load immediately, no dependency on Printing
+
+            // Materials URL - no printing filter for now
+            const url = '/Api/Materials';
+
+            // Call server-side endpoint (credentials are handled server-side)
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error occurred' }));
+                throw new Error(errorData.error || `Failed to load materials: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Extract materials from response (handle different response structures)
+            const materialsData = data.materials || data.data || data.items || data.results || data;
+            allMaterialsData = materialsData; // Store for potential re-filtering
+            populateMaterials(materialsData);
+
+        } catch (error) {
+            console.error('Error loading materials:', error);
+            let errorMessage = 'Error loading materials. ';
+            if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
+                errorMessage += 'Please check your network connection or API availability.';
+            } else {
+                errorMessage += (error.message || 'Please refresh the page to retry.');
+            }
+            materialError.textContent = errorMessage;
+            materialError.style.display = 'block';
+            materialSelect.innerHTML = '<option value="">Error loading materials. See error message below.</option>';
+        } finally {
+            materialLoading.style.display = 'none';
+            materialSelect.style.opacity = '1';
+            materialSelect.disabled = false;
+        }
+    }
+
+    // Fetch Materials from API via server-side endpoint (no prerequisites)
     async function loadMaterials() {
         try {
             // Show loading state
@@ -72,10 +122,12 @@
     async function loadPrintingOptions() {
         console.log('loadPrintingOptions called');
         try {
+            console.log('Checking required elements...');
             if (!printingFilter || !printingLoading) {
                 console.error('Required elements not found:', { printingFilter, printingLoading });
                 return;
             }
+            console.log('Required elements found, proceeding...');
             
             // Show loading state
             printingLoading.style.display = 'block';
@@ -87,7 +139,8 @@
             // Call server-side endpoint (credentials are handled server-side)
             const response = await fetch('/Api/ColorCodes', {
                 method: 'GET',
-                headers: {
+                headers:
+                 {
                     'Accept': 'application/json'
                 }
             });
@@ -95,14 +148,25 @@
             console.log('Response received:', response.status, response.statusText, response.ok);
 
             if (!response.ok) {
+                console.error('Response not OK, parsing error data...');
                 const errorData = await response.json().catch(() => ({ error: 'Unknown error occurred' }));
                 console.error('API error:', errorData);
                 throw new Error(errorData.error || `Failed to load printing options: ${response.status}`);
             }
 
+            console.log('Response OK, parsing JSON...');
             const data = await response.json();
             console.log('Data received from API:', data);
-            populatePrintingOptions(data);
+            console.log('About to call populatePrintingOptions with data type:', typeof data, 'isArray:', Array.isArray(data));
+            console.log('Calling populatePrintingOptions now...');
+            try {
+                populatePrintingOptions(data);
+                console.log('populatePrintingOptions call completed');
+            } catch (populateError) {
+                console.error('Error in populatePrintingOptions:', populateError);
+                console.error('Error stack:', populateError.stack);
+                throw populateError;
+            }
 
         } catch (error) {
             console.error('Error loading printing options:', error);
@@ -122,8 +186,10 @@
         }
     }
 
+
     // Populate Printing options (ColorCodes) buttons
     function populatePrintingOptions(data) {
+        console.log('populatePrintingOptions called with data:', data);
         if (!printingFilter) {
             console.error('Cannot populate printing options - printingFilter element not found');
             return;
@@ -163,17 +229,42 @@
         // Extract printing options with deduplication by Id
         const printingMap = new Map();
         
-        colorCodes.forEach(colorCode => {
-            // Skip if ColourBacking is missing or no Id
-            const colourBacking = colorCode.ColourBacking;
-            if (!colourBacking || !colourBacking.Id) {
-                console.warn('Skipping printing option - missing ColourBacking or Id:', colorCode);
+        colorCodes.forEach((colorCode, index) => {
+            console.log(`Processing color code ${index}:`, colorCode);
+            
+            // Handle both nested (ColourBacking) and flat structures
+            // Some endpoints return {ColourBacking: {Id, Descriptions}}
+            // Others return {Id, Descriptions} directly
+            const colourBacking = colorCode.ColourBacking || colorCode.colourBacking;
+            console.log(`  ColourBacking for item ${index}:`, colourBacking);
+            
+            // If ColourBacking is null, the data might be directly on the colorCode object
+            const dataSource = colourBacking || colorCode;
+            
+            // Get the ID - handle both Id and id (case-insensitive)
+            // Check both nested and flat structures
+            // Also check for other possible property names
+            let colorCodeId = null;
+            if (colourBacking) {
+                colorCodeId = colourBacking.Id || colourBacking.id || colourBacking.ID;
+                console.log(`  ID from ColourBacking for item ${index}:`, colorCodeId);
+            } else {
+                // Try all possible ID property names
+                colorCodeId = colorCode.Id || colorCode.id || colorCode.ID || 
+                             colorCode.ColourCodeId || colorCode.colourCodeId ||
+                             colorCode.ColorCodeId || colorCode.colorCodeId;
+                console.log(`  ID from flat structure for item ${index}:`, colorCodeId);
+                console.log(`  All properties on colorCode ${index}:`, Object.keys(colorCode));
+            }
+                
+            if (!colorCodeId) {
+                //console.warn(`Skipping printing option ${index} - missing Id. Full object:`, JSON.stringify(colorCode, null, 2));
                 return; // Skip this option
             }
             
             // Skip if we've already seen this Id (deduplication)
-            if (printingMap.has(colourBacking.Id)) {
-                console.log('Skipping duplicate printing option Id:', colourBacking.Id);
+            if (printingMap.has(colorCodeId)) {
+                console.log('Skipping duplicate printing option Id:', colorCodeId);
                 return;
             }
             
@@ -181,12 +272,16 @@
             let description = 'Unknown';
             
             // Handle both "Descriptions" and "Discriptions" (typo in API)
-            const descriptionsArray = colourBacking.Descriptions || colourBacking.Discriptions;
+            // Handle both PascalCase and camelCase
+            // Check both nested and flat structures
+            const descriptionsArray = dataSource.Descriptions || dataSource.Discriptions || 
+                                     dataSource.descriptions || dataSource.discriptions;
             if (descriptionsArray && Array.isArray(descriptionsArray) && descriptionsArray.length > 0) {
                 // First, try to find exact match for "en-US"
-                const enUSDesc = descriptionsArray.find(d => 
-                    d.ISOLanguageCode === 'en-US' || d.isoLanguageCode === 'en-US'
-                );
+                const enUSDesc = descriptionsArray.find(d => {
+                    const langCode = d.ISOLanguageCode || d.isoLanguageCode || d.ISOLanguagecode;
+                    return langCode === 'en-US' || langCode === 'en-us';
+                });
                 
                 if (enUSDesc) {
                     description = enUSDesc.Description || enUSDesc.description || 'Unknown';
@@ -197,10 +292,11 @@
                 }
             }
             
-            console.log('Adding printing option - Id:', colourBacking.Id, 'Description:', description);
+            console.log('Adding printing option - Id:', colorCodeId, 'Description:', description);
             
             // Store in map using Id as key (value is description)
-            printingMap.set(colourBacking.Id, description);
+            // This ensures the ID from the API is used, not the description
+            printingMap.set(colorCodeId, description);
         });
 
         // Sort by description text
@@ -249,8 +345,17 @@
                     }
                 }
                 
-                // Filter Finishing options based on Printing selection
-                filterFinishingOptions(selectedPrinting);
+                // Load Finishing options based on Printing selection
+                if (selectedPrinting) {
+                    loadFinishingOptions(selectedPrinting);
+                } else {
+                    // Clear finish if no printing selected
+                    const finishSelect = document.getElementById('finish');
+                    if (finishSelect) {
+                        finishSelect.innerHTML = '<option value="">Please select a Printing option first</option>';
+                        finishSelect.disabled = true;
+                    }
+                }
                 
                 updateSummaryPanel();
             });
@@ -280,6 +385,7 @@
                         const selectedPrinting = buttonToActivate.getAttribute('data-printing-text') || buttonToActivate.textContent.trim();
                         if (selectedPrinting) {
                             loadCuttingDieOptions(selectedPrinting);
+                            loadFinishingOptions(selectedPrinting);
                         }
                     }
                 }
@@ -448,8 +554,24 @@
                 // Note: ASP.NET Core JSON serialization defaults to camelCase
                 cuttingDieOptions.forEach(option => {
                     const optionElement = document.createElement('option');
-                    optionElement.value = option.stnsRef || option.StnsRef || option.stns_ref || '';
+                    // Get the raw reference (handle possible naming variations)
+                    const optionValue = option.stns_ref || option.stnsRef || '';
+
+                    // Use cleanedRef as the option value so "QQ-R-" is removed
+                    optionElement.value = optionValue;
+
+                    // Human-readable text for the option
                     optionElement.textContent = option.stnsOms || option.StnsOms || option.stns_oms || 'Unknown';
+
+                    // Remove leading "QQ-R-" prefix if present
+                    const cleanedRef = optionElement.textContent.replace(/^QQ-R-/, '');
+
+                    // Preserve the original raw reference for server-side needs
+                    if (optionValue) {
+                        optionElement.dataset.rawRef = cleanedRef;
+                        optionElement.text = cleanedRef;
+                    }
+
                     cuttingDieSelect.appendChild(optionElement);
                 });
             }
@@ -569,11 +691,11 @@
                     );
                     if (optionToSelect) {
                         finishSelect.value = optionToSelect.value;
-                    }
-                }
-            } catch (e) {
+                      }
+                  }
+               } catch (e) {
                 console.error('Error restoring finish:', e);
-            }
+              }
         }
     }
 
@@ -1015,7 +1137,8 @@ function toggleSizeSections() {
     }
 
     // Event listeners
-    shapeInputs.forEach(input => {
+    // Shape input event listeners
+    document.querySelectorAll('input[name="shape"]').forEach(input => {
         input.addEventListener('change', function() {
             toggleCornersSection();
             toggleSizeSections();
@@ -1026,12 +1149,14 @@ function toggleSizeSections() {
     });
 
     // Width and Height input handlers
-    widthInput.addEventListener('input', function() {
-        if (validateNumericInput(this)) {
-            validateLabelSize();
-            updateSummaryPanel();
-        }
-    });
+    if (widthInput) {
+        widthInput.addEventListener('input', function () {
+            if (validateNumericInput(this)) {
+                validateLabelSize();
+                updateSummaryPanel();
+            }
+        });
+    }
     widthInput.addEventListener('blur', function() { 
         handleSizeInputBlur(this);
         updateSummaryPanel();
@@ -1139,18 +1264,16 @@ function toggleSizeSections() {
         }
     });
     
+    
     // Load printing options (ColorCodes) from API on page load (runs asynchronously, doesn't block UI)
     if (printingFilter && printingLoading) {
         loadPrintingOptions().then(() => {
             // After printing options load, check if printing is already selected
             const selectedPrinting = getSelectedPrinting();
             if (selectedPrinting) {
-                // Load cutting die and filter finishing options based on selected printing
+                // Load cutting die and finishing options based on selected printing
                 loadCuttingDieOptions(selectedPrinting);
-                filterFinishingOptions(selectedPrinting);
-            } else {
-                // Filter finishing with no selection (show all)
-                filterFinishingOptions('');
+                loadFinishingOptions(selectedPrinting);
             }
             // Restore form data after everything loads
             setTimeout(() => restoreFormData(), 300);
@@ -1386,163 +1509,200 @@ function toggleSizeSections() {
     // And again after materials potentially load
     setTimeout(() => restoreFormData(), 2000);
 
-    // Form submission handler
-    document.getElementById('send-quote-btn')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        // Validate contact fields before submitting
-        const isNameValid = validateName();
-        const isEmailValid = validateEmail();
-        const isPhoneValid = validatePhone();
-        
-        if (!isNameValid || !isEmailValid || !isPhoneValid) {
-            // Scroll to first validation error
-            const firstError = document.querySelector('.is-invalid');
-            if (firstError) {
-                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                firstError.focus();
-            }
-            return; // Don't submit if validation fails
-        }
-        
-        // Collect all form data
-        const formData = new FormData(document.getElementById('quote-form'));
-        
-        // Get all form values (including display text for dropdowns)
-        const materialSelect = document.getElementById('material');
-        const finishSelect = document.getElementById('finish');
-        const cuttingDieSelect = document.getElementById('cutting-die');
-        
-        // Get Printing (ColorCode) from active button
-        let printingValue = '';
-        let printingText = '';
-        let printingSection = null;
-        Array.from(document.querySelectorAll('.form-section')).forEach(section => {
-            const label = section.querySelector('.form-section-label');
-            if (label && label.textContent.trim() === 'Printing') {
-                printingSection = section;
-            }
-        });
-        if (printingSection) {
-            const activePrintingBtn = printingSection.querySelector('#printing-filter button.active');
-            if (activePrintingBtn) {
-                printingValue = activePrintingBtn.getAttribute('data-printing-id') || '';
-                printingText = activePrintingBtn.getAttribute('data-printing-text') || activePrintingBtn.textContent.trim();
-            }
-        }
-        
-        const getSelectedText = (selectElement) => {
-            if (!selectElement || !selectElement.value) return '';
-            const selectedOption = selectElement.options[selectElement.selectedIndex];
-            return selectedOption ? selectedOption.text : '';
-        };
-
-        const getApplicationMethodText = () => {
-            const selected = document.querySelector('input[name="application-method"]:checked');
-            if (!selected) return '';
-            const label = selected.closest('label');
-            return label ? label.textContent.trim().replace(/\s*\([^)]*\)/, '') : '';
-        };
-
-        const getUnwindDirectionText = () => {
-            const selected = document.querySelector('input[name="unwind-direction"]:checked');
-            if (!selected) return '';
-            const label = selected.closest('label');
-            return label ? label.textContent.trim() : '';
-        };
-
-        const getArtworkOptionText = () => {
-            const selected = document.querySelector('input[name="artwork-option"]:checked');
-            if (!selected) return '';
-            const value = selected.value;
-            switch(value) {
-                case 'upload-now': return 'Upload artwork now';
-                case 'artwork-not-ready': return 'Artwork is not ready';
-                case 'upload-later': return 'Upload artwork later';
-                default: return value;
-            }
-        };
-
-        const getShapeText = () => {
-            const selected = document.querySelector('input[name="shape"]:checked');
-            if (!selected) return '';
-            const value = selected.value;
-            return value.charAt(0).toUpperCase() + value.slice(1);
-        };
-
-        // Get actual form values (for restoration)
-        const shapeValue = document.querySelector('input[name="shape"]:checked')?.value || '';
-        const cornersValue = document.querySelector('input[name="corners"]:checked')?.value || '';
-        const applicationMethodValue = document.querySelector('input[name="application-method"]:checked')?.value || '';
-        const unwindDirectionValue = document.querySelector('input[name="unwind-direction"]:checked')?.value || '';
-        const artworkOptionValue = document.querySelector('input[name="artwork-option"]:checked')?.value || '';
-        const materialValue = materialSelect?.value || '';
-        const finishValue = finishSelect?.value || '';
-        const cuttingDieValue = cuttingDieSelect?.value || '';
-        
-        // Printing value is already set above from the active button
-
-        const quoteData = {
-            // Contact information
-            name: document.getElementById('contact-name')?.value.trim() || '',
-            email: document.getElementById('contact-email')?.value.trim() || '',
-            phone: document.getElementById('contact-phone')?.value.trim() || '',
+    // Form submission handler for "Send Quote" button
+    const sendQuoteBtn = document.getElementById('send-quote-btn');
+    if (sendQuoteBtn) {
+        sendQuoteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             
-            // Display values (for confirmation page)
-            description: document.getElementById('description')?.value || '',
-            shape: getShapeText(),
-            labelWidth: document.getElementById('label-width')?.value || '',
-            labelHeight: document.getElementById('label-height')?.value || '',
-            diameter: document.getElementById('diameter')?.value || '',
-            corners: cornersValue ? cornersValue.charAt(0).toUpperCase() + cornersValue.slice(1) : '',
-            cuttingDie: getSelectedText(cuttingDieSelect),
-            printing: getSelectedPrinting() || printingText,
-            material: getSelectedText(materialSelect),
-            finish: getSelectedText(finishSelect),
-            applicationMethod: getApplicationMethodText(),
-            unwindDirection: getUnwindDirectionText(),
-            totalQuantity: document.getElementById('total-quantity')?.value || '',
-            artworkOption: getArtworkOptionText(),
+            // Validate required fields before submission
+            const description = document.getElementById('description')?.value.trim();
+            if (!description || description.length < 5) {
+                alert('Please enter a description (at least 5 characters).');
+                document.getElementById('description')?.focus();
+                return;
+            }
+
+            // Validate contact information if provided
+            if (!validateName() || !validateEmail() || !validatePhone()) {
+                alert('Please correct the contact information errors before submitting.');
+                return;
+            }
+
+            // Validate label size based on shape
+            const selectedShape = document.querySelector('input[name="shape"]:checked')?.value;
+            if (!selectedShape) {
+                alert('Please select a shape.');
+                return;
+            }
+
+            if (selectedShape === 'circle' || selectedShape === 'oval') {
+                const diameter = document.getElementById('diameter')?.value.trim();
+                if (!diameter || isNaN(parseFloat(diameter))) {
+                    alert('Please enter a valid diameter.');
+                    document.getElementById('diameter')?.focus();
+                    return;
+                }
+                validateDiameter();
+                const diameterValidation = document.getElementById('diameter-validation');
+                if (diameterValidation.style.display === 'block' && diameterValidation.classList.contains('error')) {
+                    alert('Please correct the diameter value.');
+                    return;
+                }
+            } else {
+                const width = document.getElementById('label-width')?.value.trim();
+                const height = document.getElementById('label-height')?.value.trim();
+                if (!width || !height || isNaN(parseFloat(width)) || isNaN(parseFloat(height))) {
+                    alert('Please enter valid width and height values.');
+                    return;
+                }
+                validateLabelSize();
+                const sizeValidation = document.getElementById('size-validation');
+                if (sizeValidation.style.display === 'block' && sizeValidation.classList.contains('error')) {
+                    alert('Please correct the label size values.');
+                    return;
+                }
+            }
+
+            // Validate printing selection
+            const selectedPrinting = getSelectedPrinting();
+            if (!selectedPrinting) {
+                alert('Please select a printing option.');
+                return;
+            }
+
+            // Validate material selection
+            const materialSelect = document.getElementById('material');
+            const selectedMaterial = materialSelect?.value;
+            if (!selectedMaterial) {
+                alert('Please select a material.');
+                return;
+            }
+
+            // Validate cutting die selection
+            const cuttingDieSelect = document.getElementById('cutting-die');
+            const selectedCuttingDie = cuttingDieSelect?.value;
+            if (!selectedCuttingDie) {
+                alert('Please select a cutting die option.');
+                return;
+            }
+
+            // Validate finish selection
+            const finishSelect = document.getElementById('finish');
+            const selectedFinish = finishSelect?.value;
+            if (!selectedFinish) {
+                alert('Please select a finish option.');
+                return;
+            }
+
+            // Validate total quantity
+            const totalQuantity = document.getElementById('total-quantity')?.value.trim();
+            if (!totalQuantity || isNaN(parseInt(totalQuantity)) || parseInt(totalQuantity) < 1) {
+                alert('Please enter a valid total quantity (at least 1).');
+                document.getElementById('total-quantity')?.focus();
+                return;
+            }
+
+            // Validate artwork option
+            const artworkOption = document.querySelector('input[name="artwork-option"]:checked')?.value;
+            if (!artworkOption) {
+                alert('Please select an artwork option.');
+                return;
+            }
+
+            // Get the form element
+            const form = document.getElementById('quote-form');
+            if (!form) {
+                console.error('Quote form not found');
+                return;
+            }
+
+            // Get display text for dropdowns
+            const getSelectedText = (selectElement) => {
+                if (!selectElement || !selectElement.value) return '';
+                const selectedOption = selectElement.options[selectElement.selectedIndex];
+                return selectedOption ? selectedOption.text : '';
+            };
+
+            // Get application method display text
+            const getApplicationMethodText = () => {
+                const selected = document.querySelector('input[name="application-method"]:checked');
+                if (!selected) return '';
+                const label = selected.closest('label');
+                return label ? label.textContent.trim().replace(/\s*\([^)]*\)/, '').trim() : '';
+            };
+
+            // Get unwind direction display text
+            const getUnwindDirectionText = () => {
+                const selected = document.querySelector('input[name="unwind-direction"]:checked');
+                if (!selected) return '';
+                const label = selected.closest('label');
+                return label ? label.textContent.trim() : '';
+            };
+
+            // Get printing button data
+            const printingFilter = document.getElementById('printing-filter');
+            const activePrintingBtn = printingFilter?.querySelector('button.active');
+            const printingId = activePrintingBtn?.getAttribute('data-printing-id') || '';
+            const printingText = activePrintingBtn?.getAttribute('data-printing-text') || selectedPrinting;
+
+            // Add hidden fields to the form for backend mapping
+            const addHiddenField = (name, value) => {
+                let hidden = form.querySelector(`input[name="${name}"]`);
+                if (!hidden) {
+                    hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = name;
+                    form.appendChild(hidden);
+                }
+                hidden.value = value;
+            };
+
+            // Map form fields to backend expected names and add display values
+            // Set the form action to include the handler for ASP.NET Core Razor Pages
+            const currentUrl = window.location.pathname;
+            form.action = currentUrl + '?handler=Submit';
+            addHiddenField('name', document.getElementById('contact-name')?.value.trim() || '');
+            addHiddenField('email', document.getElementById('contact-email')?.value.trim() || '');
+            addHiddenField('phone', document.getElementById('contact-phone')?.value.trim() || '');
+            addHiddenField('labelWidth', document.getElementById('label-width')?.value.trim() || '');
+            addHiddenField('labelHeight', document.getElementById('label-height')?.value.trim() || '');
+            addHiddenField('cuttingDie', getSelectedText(cuttingDieSelect));
+            addHiddenField('cuttingDieValue', selectedCuttingDie);
+            addHiddenField('printing', printingId);
+            addHiddenField('printingValue', printingId);
+            addHiddenField('colorCode', printingId);
+            addHiddenField('colorCodeValue', printingId);
+            addHiddenField('material', getSelectedText(materialSelect));
+            addHiddenField('materialValue', selectedMaterial);
+            addHiddenField('finish', getSelectedText(finishSelect));
+            addHiddenField('finishValue', selectedFinish);
+            addHiddenField('applicationMethod', getApplicationMethodText());
+            addHiddenField('applicationMethodValue', document.querySelector('input[name="application-method"]:checked')?.value || '');
+            addHiddenField('unwindDirection', getUnwindDirectionText());
+            addHiddenField('unwindDirectionValue', document.querySelector('input[name="unwind-direction"]:checked')?.value || '');
+            addHiddenField('totalQuantity', totalQuantity);
+            addHiddenField('artworkOption', document.querySelector('input[name="artwork-option"]:checked')?.closest('label')?.textContent.trim() || '');
+            addHiddenField('artworkOptionValue', artworkOption);
             
-            // Form values (for restoration)
-            shapeValue: shapeValue,
-            cornersValue: cornersValue,
-            materialValue: materialValue,
-            finishValue: finishValue,
-            applicationMethodValue: applicationMethodValue,
-            unwindDirectionValue: unwindDirectionValue,
-            artworkOptionValue: artworkOptionValue,
-            cuttingDieValue: cuttingDieValue,
-            printingValue: printingValue || printingText
-        };
+            // Get shape ID from data-shape-id attribute (ID from API), fall back to value if not present
+            const selectedShapeInput = document.querySelector('input[name="shape"]:checked');
+            const shapeId = selectedShapeInput?.getAttribute('data-shape-id') || selectedShapeInput?.value || '';
+            addHiddenField('shapeValue', shapeId); // Use the ID from API
+            addHiddenField('shape', selectedShapeInput?.closest('label')?.querySelector('.shape-label')?.textContent.trim() || selectedShape); // Keep display text
+            
+            // Corners
+            const selectedCorners = document.querySelector('input[name="corners"]:checked');
+            if (selectedCorners) {
+                addHiddenField('cornersValue', selectedCorners.value);
+                addHiddenField('corners', selectedCorners.closest('label')?.querySelector('.shape-label')?.textContent.trim() || selectedCorners.value);
+            }
 
-        // Submit form via POST to Index page handler
-        const submitForm = document.createElement('form');
-        submitForm.method = 'POST';
-        submitForm.action = '/Index?handler=Submit';
-        
-        // Add anti-forgery token
-        const token = document.querySelector('input[name="__RequestVerificationToken"]');
-        if (!token) {
-            // Create token if it doesn't exist (ASP.NET Core will generate it)
-            const tokenInput = document.createElement('input');
-            tokenInput.type = 'hidden';
-            tokenInput.name = '__RequestVerificationToken';
-            submitForm.appendChild(tokenInput);
-        } else {
-            submitForm.appendChild(token.cloneNode(true));
-        }
-
-        // Add all quote data as hidden inputs (using camelCase to match model)
-        Object.keys(quoteData).forEach(key => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = quoteData[key] || '';
-            submitForm.appendChild(input);
+            // Submit the form
+            form.submit();
         });
+    } else {
+        console.error('Send Quote button not found');
+    }
 
-        document.body.appendChild(submitForm);
-        submitForm.submit();
-    });
 });

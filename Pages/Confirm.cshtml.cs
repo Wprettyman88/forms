@@ -21,6 +21,9 @@ namespace WiseLabels.Pages
         [BindProperty]
         public QuoteRequest QuoteRequest { get; set; } = new();
 
+        public string? ApiPayloadJson { get; set; }
+        public string? FormValuesJson { get; set; }
+
         public void OnGet()
         {
             // Get quote data from TempData (passed from form submission)
@@ -61,31 +64,36 @@ namespace WiseLabels.Pages
                 // Store in database
                 var quoteId = await _quoteService.StoreQuoteAsync(quote);
 
+                // Transform to API payload format
+                var apiPayload = _quoteService.TransformToApiPayload(quote);
+
+                // Serialize the API payload for display
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                };
+                ApiPayloadJson = JsonSerializer.Serialize(apiPayload, jsonOptions);
+
+                // Serialize the form values for display
+                var formJsonOptions = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+                FormValuesJson = JsonSerializer.Serialize(quote, formJsonOptions);
+
                 // Submit to CERM API
                 var apiSuccess = await _quoteService.SubmitToCermApiAsync(quote);
 
-                // Send confirmation email if email address was provided
-                if (!string.IsNullOrWhiteSpace(quote.Email))
-                {
-                    _ = Task.Run(async () =>
-                    {
-                        try
-                        {
-                            await _emailService.SendQuoteConfirmationAsync(quote.Email, quoteId, quote.Name ?? "Customer");
-                        }
-                        catch (Exception emailEx)
-                        {
-                            _logger.LogError(emailEx, "Error sending confirmation email (non-blocking)");
-                        }
-                    });
-                }
+                // Set the QuoteRequest property for display on the page
+                QuoteRequest = quote;
 
-                // Store quote data in TempData for success page (including quote ID)
-                TempData["QuoteId"] = quoteId;
-                TempData["ApiSuccess"] = apiSuccess.ToString();
-                TempData["QuoteRequest"] = JsonSerializer.Serialize(quote); // Pass full quote data for PDF
+                // Keep the quote data in TempData for Edit redirect
+                TempData["QuoteRequest"] = JsonSerializer.Serialize(quote);
 
-                return RedirectToPage("/Success");
+                // Stay on the same page to show debug information
+                return Page();
             }
             catch (Exception ex)
             {

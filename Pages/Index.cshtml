@@ -29,29 +29,76 @@
                 </div>
             </div>
 
+            <!-- Material Section -->
+            <div class="form-section">
+                <label class="form-section-label">Materials</label>
+                <div class="form-section-content">
+                    <div id="material-loading" class="material-loading" style="display: none;">
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Loading materials ...</span>
+                    </div>
+                    <select class="form-control" id="material" name="material" size="10" data-saved-value="@(Model.SavedQuoteRequest?.MaterialValue ?? "")">
+                        <option value="">Loading materials...</option>
+                    </select>
+                    <div id="material-error" class="size-validation-message error" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Printing Section (using Color Codes from API) -->
+            <div class="form-section">
+                <label class="form-section-label">Printing</label>
+                <div class="form-section-content">
+                    <div id="printing-loading" class="material-loading" style="display: none;">
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Loading printing options ...</span>
+                    </div>
+                    <div id="printing-filter" class="material-filter">
+                        <div class="text-muted">Loading printing options...</div>
+                    </div>
+                    <div id="printing-error" class="size-validation-message error" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Finish Section -->
+            <div class="form-section">
+                <label class="form-section-label">Finish</label>
+                <div class="form-section-content">
+                    <div id="finish-loading" class="material-loading" style="display: none;">
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Loading finishes ...</span>
+                    </div>
+
+                    <select class="form-control" id="finish" name="finish" disabled data-selected="@(Model.SavedQuoteRequest?.FinishValue ?? Model.SavedQuoteRequest?.Finish ?? "")">
+                        <option value="">Please select a Printing option first</option>
+                    </select>
+
+                    <div id="finish-error" class="size-validation-message error" style="display: none;"></div>
+                </div>
+            </div>
+
             <!-- Shape Section -->
             <div class="form-section">
                 <label class="form-section-label">Shape</label>
                 <div class="form-section-content">
                     <div class="shape-options">
                         <label class="shape-option">
-                            <input type="radio" name="shape" value="rectangle" @((Model.SavedQuoteRequest == null || Model.SavedQuoteRequest.ShapeValue == "rectangle" || (string.IsNullOrEmpty(Model.SavedQuoteRequest?.ShapeValue) && string.IsNullOrEmpty(Model.SavedQuoteRequest?.Shape))) ? "checked" : "")>
+                            <input type="radio" name="shape" value="rectangle" data-shape-id="1" @((Model.SavedQuoteRequest == null || Model.SavedQuoteRequest.ShapeValue == "1" || Model.SavedQuoteRequest.ShapeValue == "rectangle" || (string.IsNullOrEmpty(Model.SavedQuoteRequest?.ShapeValue) && string.IsNullOrEmpty(Model.SavedQuoteRequest?.Shape))) ? "checked" : "")>
                             <span class="shape-label">Rectangle</span>
                         </label>
                         <label class="shape-option">
-                            <input type="radio" name="shape" value="square" @(Model.SavedQuoteRequest?.ShapeValue == "square" ? "checked" : "")>
+                            <input type="radio" name="shape" value="square" data-shape-id="2" @(Model.SavedQuoteRequest?.ShapeValue == "2" || Model.SavedQuoteRequest?.ShapeValue == "square" ? "checked" : "")>
                             <span class="shape-label">Square</span>
                         </label>
                         <label class="shape-option">
-                            <input type="radio" name="shape" value="circle" @(Model.SavedQuoteRequest?.ShapeValue == "circle" ? "checked" : "")>
+                            <input type="radio" name="shape" value="circle" data-shape-id="3" @(Model.SavedQuoteRequest?.ShapeValue == "3" || Model.SavedQuoteRequest?.ShapeValue == "circle" ? "checked" : "")>
                             <span class="shape-label">Circle</span>
                         </label>
                         <label class="shape-option">
-                            <input type="radio" name="shape" value="oval" @(Model.SavedQuoteRequest?.ShapeValue == "oval" ? "checked" : "")>
+                            <input type="radio" name="shape" value="oval" data-shape-id="4" @(Model.SavedQuoteRequest?.ShapeValue == "4" || Model.SavedQuoteRequest?.ShapeValue == "oval" ? "checked" : "")>
                             <span class="shape-label">Oval</span>
                         </label>
                         <label class="shape-option">
-                            <input type="radio" name="shape" value="special" @(Model.SavedQuoteRequest?.ShapeValue == "special" ? "checked" : "")>
+                            <input type="radio" name="shape" value="special" data-shape-id="5" @(Model.SavedQuoteRequest?.ShapeValue == "5" || Model.SavedQuoteRequest?.ShapeValue == "special" ? "checked" : "")>
                             <span class="shape-label">Special</span>
                         </label>
                     </div>
@@ -74,6 +121,22 @@
                     </div>
                 </div>
             </div>
+                        
+            <!-- Cutting Die Section -->
+            <div class="form-section">
+                <label class="form-section-label">Cutting Die</label>
+                <div class="form-section-content">
+                    <div id="cutting-die-loading" class="material-loading" style="display: none;">
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Loading cutting die options ...</span>
+                    </div>
+                    <select class="form-control" id="cutting-die" name="cutting-die" disabled>
+                        <option value="">Please select a Printing option first</option>
+                    </select>
+                    <div id="cutting-die-error" class="size-validation-message error" style="display: none;"></div>
+                </div>
+            </div>
+
 
             <!-- Label Size Section -->
             <div class="form-section" id="label-size-section" style="display: @((Model.SavedQuoteRequest != null && (Model.SavedQuoteRequest.ShapeValue == "circle" || Model.SavedQuoteRequest.ShapeValue == "oval")) ? "none" : "block");">
@@ -115,98 +178,7 @@
                 </div>
             </div>
 
-            <!-- Material Section -->
-            <div class="form-section">
-                <label class="form-section-label">Materials</label>
-                <div class="form-section-content">
-                    <div id="material-loading" class="material-loading" style="display: none;">
-                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        <span>Loading materials ...</span>
-                    </div>
-                    <select class="form-control" id="material" name="material" size="10" data-saved-value="@(Model.SavedQuoteRequest?.MaterialValue ?? "")">
-                        <option value="">Loading materials...</option>
-                    </select>
-                    <div id="material-error" class="size-validation-message error" style="display: none;"></div>
-                </div>
-            </div>
-
-            <!-- Printing Section (using Color Codes from API) -->
-            <div class="form-section">
-                <label class="form-section-label">Printing</label>
-                <div class="form-section-content">
-                    <div id="printing-loading" class="material-loading" style="display: none;">
-                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        <span>Loading printing options ...</span>
-                    </div>
-                    <div id="printing-filter" class="material-filter">
-                        <div class="text-muted">Loading printing options...</div>
-                    </div>
-                    <div id="printing-error" class="size-validation-message error" style="display: none;"></div>
-                </div>
-            </div>
-
-            <!-- Cutting Die Section -->
-            <div class="form-section">
-                <label class="form-section-label">Cutting Die</label>
-                <div class="form-section-content">
-                    <div id="cutting-die-loading" class="material-loading" style="display: none;">
-                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        <span>Loading cutting die options ...</span>
-                    </div>
-                    <select class="form-control" id="cutting-die" name="cutting-die" disabled>
-                        <option value="">Please select a Printing option first</option>
-                    </select>
-                    <div id="cutting-die-error" class="size-validation-message error" style="display: none;"></div>
-                </div>
-            </div>
-
-            <!-- Finish Section -->
-            <div class="form-section">
-                <label class="form-section-label">Finish</label>
-                <div class="form-section-content">
-                    <select class="form-control" id="finish" name="finish">
-                        @{
-                            var finishValue = Model.SavedQuoteRequest?.FinishValue ?? "";
-                            if (string.IsNullOrEmpty(finishValue) && string.IsNullOrEmpty(Model.SavedQuoteRequest?.Finish))
-                            {
-                                finishValue = "gloss-laminate";
-                            }
-                        }
-                        @if (finishValue == "gloss-laminate")
-                        {
-                            <option value="gloss-laminate" selected>Gloss Laminate</option>
-                        }
-                        else
-                        {
-                            <option value="gloss-laminate">Gloss Laminate</option>
-                        }
-                        @if (finishValue == "matte-laminate")
-                        {
-                            <option value="matte-laminate" selected>Matte Laminate</option>
-                        }
-                        else
-                        {
-                            <option value="matte-laminate">Matte Laminate</option>
-                        }
-                        @if (finishValue == "gloss-varnish")
-                        {
-                            <option value="gloss-varnish" selected>Gloss Varnish</option>
-                        }
-                        else
-                        {
-                            <option value="gloss-varnish">Gloss Varnish</option>
-                        }
-                        @if (finishValue == "matte- varnish")
-                        {
-                            <option value="matte- varnish" selected>Matte Varnish</option>
-                        }
-                        else
-                        {
-                            <option value="matte- varnish">Matte Varnish</option>
-                        }
-                    </select>
-                </div>
-            </div>
+            
 
             <!-- Application Method Section -->
             <div class="form-section">
@@ -338,4 +310,5 @@
     </div>
 </div>
 <script src="~/js/site.js"></script>
+<script src="~/js/finish.js" asp-append-version="true"></script>
 <script src="~/js/quote.js" asp-append-version="true"></script>

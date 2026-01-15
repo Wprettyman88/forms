@@ -2,73 +2,35 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace WiseLabels.Pages.Api
 {
-    public class ColorCodeResponse
+    public class FinishingTypesModel : PageModel
     {
-        [JsonPropertyName("ColourBacking")]
-        public ColourBackingData? ColourBacking { get; set; }
-
-        [JsonPropertyName("Blocked")]
-        public bool? Blocked { get; set; }
-
-        [JsonPropertyName("AllowRFQ")]
-        public bool? AllowRFQ { get; set; }
-    }
-
-    public class ColourBackingData
-    {
-        [JsonPropertyName("Id")]
-        public string? Id { get; set; }
-
-        [JsonPropertyName("Descriptions")]
-        public List<ColorCodeDescriptions>? Descriptions { get; set; }
-
-        public List<ColorCodeDescriptions>? Discriptions { get; set; }
-    }
-
-    public class ColorCodeDescriptions
-    {
-        [JsonPropertyName("ISOLanguageCode")]
-        public string? ISOLanguageCode { get; set; }
-
-        [JsonPropertyName("Description")]
-        public string? Description { get; set; }
-    }
-
-    [IgnoreAntiforgeryToken]
-    public class ColorCodesModel : PageModel
-    {
-        private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ILogger<ColorCodesModel> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<FinishingTypesModel> _logger;
 
-        public ColorCodesModel(IConfiguration configuration, IHttpClientFactory httpClientFactory, ILogger<ColorCodesModel> logger)
+        public FinishingTypesModel(IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger<FinishingTypesModel> logger)
         {
-            _configuration = configuration;
             _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
             _logger = logger;
         }
 
         public async Task<IActionResult> OnGetAsync()
         {
-            _logger.LogInformation("ColorCodes OnGetAsync called");
             try
             {
                 // Get credentials from configuration
                 var oauthUrl = _configuration["Cerm:OAuthUrl"] ?? "https://brandmark-api.cerm.be/oauth/token";
-                //var colorCodesUrl = _configuration["Cerm:ColorCodesUrl"] ?? "https://brandmark-api.cerm.be/parameter-api/v1/calculation/front-adhesive-backing/colour-codes?Filter=AllowRFQ%20eq%20true%20and%20Blocked%20ne%20true";
-                var colorCodesUrl = _configuration["Cerm:ColorCodesUrl"] ?? "https://brandmark-api.cerm.be/parameter-api/v1/calculation/quick-quote/colour-codes";
+                var materialsUrl = _configuration["Cerm:FinishingTypesUrl"] ?? "";
                 var username = _configuration["Cerm:Username"];
                 var password = _configuration["Cerm:Password"];
                 var clientId = _configuration["Cerm:ClientId"];
                 var clientSecret = _configuration["Cerm:ClientSecret"];
-                
-                _logger.LogInformation("ColorCodes endpoint called. URL: {ColorCodesUrl}", colorCodesUrl);
 
-                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || 
+                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) ||
                     string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
                 {
                     _logger.LogError("CERM API credentials are missing from configuration");
@@ -88,15 +50,15 @@ namespace WiseLabels.Pages.Api
                     };
                 }
 
-                // Fetch color codes
-                var colorCodes = await FetchColorCodesAsync(colorCodesUrl, accessToken);
-                                
-                return new JsonResult(colorCodes);
+                // Fetch materials from API (no filtering for now)
+                var materials = await FetchMaterialsAsync(materialsUrl, accessToken);
+
+                return new JsonResult(new { materials = materials });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching color codes from CERM API");
-                return new JsonResult(new { error = $"Error loading color codes: {ex.Message}" })
+                _logger.LogError(ex, "Error fetching materials from CERM API");
+                return new JsonResult(new { error = $"Error loading materials: {ex.Message}" })
                 {
                     StatusCode = 500
                 };
@@ -110,17 +72,17 @@ namespace WiseLabels.Pages.Api
             {
                 // Ensure URL doesn't have trailing slash
                 oauthUrl = oauthUrl.TrimEnd('/');
-                
+
                 // Create handler that allows self-signed certificates for internal APIs
                 var handler = new HttpClientHandler();
                 if (oauthUrl.Contains("192.168.") || oauthUrl.Contains("localhost") || oauthUrl.Contains("127.0.0.1"))
                 {
                     handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
                 }
-                
+
                 httpClient = new HttpClient(handler);
                 httpClient.Timeout = TimeSpan.FromSeconds(30);
-                
+
                 _logger.LogInformation("OAuth URL: {OAuthUrl}", oauthUrl);
 
                 // Method 1: Try credentials in body only (matching Postman "Send client credentials in body")
@@ -138,18 +100,18 @@ namespace WiseLabels.Pages.Api
                     Content = new FormUrlEncodedContent(formData)
                 };
                 request.Headers.Add("Accept", "application/json");
-                
+
                 _logger.LogInformation("Attempting OAuth authentication (method 1 - credentials in body only) to {OAuthUrl}", oauthUrl);
 
                 var response = await httpClient.SendAsync(request);
-                
+
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     var errorMessage = $"OAuth authentication failed: {response.StatusCode} - {errorContent}";
-                    _logger.LogError("OAuth authentication failed (method 1 - credentials in body only): {StatusCode} - {Error}. Request URL: {OAuthUrl}", 
+                    _logger.LogError("OAuth authentication failed (method 1 - credentials in body only): {StatusCode} - {Error}. Request URL: {OAuthUrl}",
                         response.StatusCode, errorContent, oauthUrl);
-                    
+
                     // Try method 2: Basic Auth header + credentials in body
                     _logger.LogInformation("Retrying with Basic Auth header + credentials in body");
                     var (retryToken2, retryError2) = await TryWithBasicAuthHeader(oauthUrl, username, password, clientId, clientSecret);
@@ -157,7 +119,7 @@ namespace WiseLabels.Pages.Api
                     {
                         return (retryToken2, null);
                     }
-                    
+
                     // Try method 3: Basic Auth only (credentials in header only, not in body)
                     _logger.LogInformation("Retrying with Basic Auth only (credentials in header only)");
                     var (retryToken3, retryError3) = await TryBasicAuthOnly(oauthUrl, username, password, clientId, clientSecret);
@@ -165,14 +127,14 @@ namespace WiseLabels.Pages.Api
                     {
                         return (retryToken3, null);
                     }
-                    
+
                     // All methods failed, return detailed error
                     return (null, $"All methods failed. Method 1: {errorMessage}. Method 2: {retryError2}. Method 3: {retryError3}");
                 }
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var tokenData = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
-                
+
                 if (tokenData.TryGetProperty("access_token", out var accessToken))
                 {
                     _logger.LogInformation("OAuth authentication successful");
@@ -205,7 +167,7 @@ namespace WiseLabels.Pages.Api
                 {
                     handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
                 }
-                
+
                 httpClient = new HttpClient(handler);
                 httpClient.Timeout = TimeSpan.FromSeconds(30);
 
@@ -224,15 +186,15 @@ namespace WiseLabels.Pages.Api
                     Content = new FormUrlEncodedContent(formData)
                 };
                 request.Headers.Add("Accept", "application/json");
-                
+
                 // Add Basic Auth header with client credentials
                 var clientCredentials = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", clientCredentials);
-                
+
                 _logger.LogInformation("Trying OAuth authentication (method 2 - Basic Auth header + credentials in body)");
 
                 var response = await httpClient.SendAsync(request);
-                
+
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
@@ -243,7 +205,7 @@ namespace WiseLabels.Pages.Api
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var tokenData = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
-                
+
                 if (tokenData.TryGetProperty("access_token", out var accessToken))
                 {
                     _logger.LogInformation("OAuth authentication successful (method 2)");
@@ -274,7 +236,7 @@ namespace WiseLabels.Pages.Api
                 {
                     handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
                 }
-                
+
                 httpClient = new HttpClient(handler);
                 httpClient.Timeout = TimeSpan.FromSeconds(30);
 
@@ -292,15 +254,15 @@ namespace WiseLabels.Pages.Api
                     Content = new FormUrlEncodedContent(formData)
                 };
                 request.Headers.Add("Accept", "application/json");
-                
+
                 // Client credentials as Basic Auth in headers only
                 var clientCredentials = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", clientCredentials);
-                
+
                 _logger.LogInformation("Retrying OAuth authentication with Basic Auth only (no client credentials in body)");
 
                 var response = await httpClient.SendAsync(request);
-                
+
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
@@ -311,7 +273,7 @@ namespace WiseLabels.Pages.Api
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var tokenData = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
-                
+
                 if (tokenData.TryGetProperty("access_token", out var accessToken))
                 {
                     _logger.LogInformation("OAuth authentication successful with Basic Auth only");
@@ -332,7 +294,7 @@ namespace WiseLabels.Pages.Api
             }
         }
 
-        private async Task<object> FetchColorCodesAsync(string colorCodesUrl, string accessToken)
+        private async Task<object> FetchMaterialsAsync(string materialsUrl, string accessToken)
         {
             try
             {
@@ -342,27 +304,59 @@ namespace WiseLabels.Pages.Api
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
                 httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 
-                var response = await httpClient.GetAsync(colorCodesUrl);
-                
+                var response = await httpClient.GetAsync(materialsUrl);
+
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
-                    _logger.LogError("Failed to fetch color codes: {StatusCode} - {Error}", response.StatusCode, errorContent);
-                    throw new HttpRequestException($"Failed to fetch color codes: {response.StatusCode}");
+                    _logger.LogError("Failed to fetch materials: {StatusCode} - {Error}", response.StatusCode, errorContent);
+                    throw new HttpRequestException($"Failed to fetch materials: {response.StatusCode}");
                 }
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
-                _logger.LogDebug("Color Codes API response: {Response}", jsonResponse);
 
                 // Try to deserialize - handle different response structures
                 List<ParameterResponse>? paramResponse = null;
-                
+
                 try
                 {
                     // First, try to parse as JsonElement to inspect structure
                     var jsonDoc = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
 
-                    if (jsonDoc.TryGetProperty("Data", out var data) && data.ValueKind == JsonValueKind.Array)
+                    // Log the structure of the first item if it's an array
+                    if (jsonDoc.ValueKind == JsonValueKind.Array && jsonDoc.GetArrayLength() > 0)
+                    {
+                        var firstItem = jsonDoc[0];
+                        var propertyNames = firstItem.EnumerateObject().Select(p => p.Name).ToList();
+                        _logger.LogInformation("First item structure - All Properties: {Properties}", string.Join(", ", propertyNames));
+
+                        // Check for common property names that might contain the material data
+                        foreach (var propName in propertyNames)
+                        {
+                            var prop = firstItem.GetProperty(propName);
+                            _logger.LogInformation("Property '{PropertyName}' type: {Type}, ValueKind: {ValueKind}",
+                                propName, prop.GetType().Name, prop.ValueKind);
+                            if (prop.ValueKind == JsonValueKind.Object)
+                            {
+                                var subProps = prop.EnumerateObject().Select(sp => sp.Name).ToList();
+                                _logger.LogInformation("  Sub-properties of '{PropertyName}': {SubProperties}",
+                                    propName, string.Join(", ", subProps));
+                            }
+                        }
+                    }
+
+                    // Check if it's a direct array
+                    if (jsonDoc.ValueKind == JsonValueKind.Array)
+                    {
+                        // Try deserializing with case-insensitive property matching
+                        var options = new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        };
+                        paramResponse = JsonSerializer.Deserialize<List<ParameterResponse>>(jsonResponse, options);
+                    }
+                    // Check if it's wrapped in a Data property
+                    else if (jsonDoc.TryGetProperty("Data", out var data) && data.ValueKind == JsonValueKind.Array)
                     {
                         var options = new JsonSerializerOptions
                         {
@@ -370,46 +364,176 @@ namespace WiseLabels.Pages.Api
                         };
                         paramResponse = JsonSerializer.Deserialize<List<ParameterResponse>>(data.GetRawText(), options);
                     }
-
-                    var result = new List<ParameterResponse>();
-
-                    JsonElement arrayElement = new JsonElement();
-                    List<ParameterResponse> paramResponses = new List<ParameterResponse>();
-
-                    if (jsonDoc.ValueKind != JsonValueKind.Array) 
-                    { 
-                        arrayElement = jsonDoc; 
-                    }
-                    else if (jsonDoc.TryGetProperty("Data", out var dataOut) &&  data.ValueKind == JsonValueKind.Array) 
+                    // Check if it's wrapped in other common properties
+                    else if (jsonDoc.TryGetProperty("items", out var items) && items.ValueKind == JsonValueKind.Array)
                     {
-                        arrayElement = dataOut;
                         var options = new JsonSerializerOptions
                         {
                             PropertyNameCaseInsensitive = true
                         };
-                        paramResponse = JsonSerializer.Deserialize<List<ParameterResponse>>(arrayElement.GetRawText(), options);
+                        paramResponse = JsonSerializer.Deserialize<List<ParameterResponse>>(items.GetRawText(), options);
+                    }
+                    else if (jsonDoc.TryGetProperty("results", out var results) && results.ValueKind == JsonValueKind.Array)
+                    {
+                        var options = new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        };
+                        paramResponse = JsonSerializer.Deserialize<List<ParameterResponse>>(results.GetRawText(), options);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Unexpected JSON structure. Root kind: {ValueKind}", jsonDoc.ValueKind);
+                        // Try direct deserialization with case-insensitive matching
+                        var options = new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        };
+                        paramResponse = JsonSerializer.Deserialize<List<ParameterResponse>>(jsonResponse, options);
                     }
 
-                    // Order printing options
-                    paramResponse.OrderBy(cc => cc.Id);
-
-                    return paramResponse;
+                    // If Id is still null after deserialization, try manual mapping
+                    if (paramResponse != null && paramResponse.Count > 0 && string.IsNullOrEmpty(paramResponse[0].Id))
+                    {
+                        _logger.LogWarning("Id is null after deserialization. Attempting manual mapping...");
+                        paramResponse = ManualMapMaterials(jsonDoc);
+                    }
                 }
                 catch (JsonException jsonEx)
                 {
                     _logger.LogError(jsonEx, "JSON deserialization error. Response: {Response}", jsonResponse);
-                    throw new Exception($"Failed to parse color codes response: {jsonEx.Message}. Response: {jsonResponse.Substring(0, Math.Min(500, jsonResponse.Length))}", jsonEx);
+                    throw new Exception($"Failed to parse materials response: {jsonEx.Message}. Response: {jsonResponse.Substring(0, Math.Min(500, jsonResponse.Length))}", jsonEx);
                 }
-                
-                _logger.LogWarning("No color codes found in response");
-                return new List<ParameterResponse>();
+
+                if (paramResponse != null && paramResponse.Count > 0)
+                {
+                    // Filter only on AllowRFQ flag being true
+                    paramResponse = paramResponse.Where(m => m.AllowRFQ).ToList();
+
+                    // Sort materials alphabetically by their display description (en-US)
+                    paramResponse = paramResponse.OrderBy(material =>
+                    {
+                        if (material.Descriptions != null && material.Descriptions.Count > 0)
+                        {
+                            // Prefer en-US description
+                            var enUSDesc = material.Descriptions.FirstOrDefault(d =>
+                                d.ISOLanguageCode != null && d.ISOLanguageCode.Equals("en-US", StringComparison.OrdinalIgnoreCase));
+                            var desc = enUSDesc ?? material.Descriptions[0];
+                            return desc.Description ?? string.Empty;
+                        }
+                        return string.Empty;
+                    }, StringComparer.OrdinalIgnoreCase).ToList();
+
+                    _logger.LogInformation("Returning {Count} materials after filtering and sorting", paramResponse.Count);
+                    return (paramResponse);
+                }
+
+                _logger.LogWarning("No materials found in response");
+                return (new List<ParameterResponse>());
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Exception while fetching color codes");
+                _logger.LogError(ex, "Exception while fetching materials");
                 throw;
             }
         }
+
+        private List<ParameterResponse> ManualMapMaterials(JsonElement jsonDoc)
+        {
+            var result = new List<ParameterResponse>();
+
+            JsonElement arrayElement;
+            if (jsonDoc.ValueKind == JsonValueKind.Array)
+            {
+                arrayElement = jsonDoc;
+            }
+            else if (jsonDoc.TryGetProperty("Data", out var data) && data.ValueKind == JsonValueKind.Array)
+            {
+                arrayElement = data;
+            }
+            else if (jsonDoc.TryGetProperty("items", out var items) && items.ValueKind == JsonValueKind.Array)
+            {
+                arrayElement = items;
+            }
+            else if (jsonDoc.TryGetProperty("results", out var results) && results.ValueKind == JsonValueKind.Array)
+            {
+                arrayElement = results;
+            }
+            else
+            {
+                _logger.LogWarning("Cannot find array in JSON structure");
+                return result;
+            }
+
+            foreach (var item in arrayElement.EnumerateArray())
+            {
+                var param = new ParameterResponse();
+
+                // Get Id (case-insensitive)
+                if (item.TryGetProperty("Id", out var idProp) || item.TryGetProperty("id", out idProp))
+                {
+                    param.Id = idProp.GetString();
+                }
+
+                // Get Descriptions array (case-insensitive)
+                if ((item.TryGetProperty("Descriptions", out var descriptionsProp) ||
+                     item.TryGetProperty("descriptions", out descriptionsProp)) &&
+                    descriptionsProp.ValueKind == JsonValueKind.Array)
+                {
+                    var descriptions = new List<Descriptions>();
+                    foreach (var desc in descriptionsProp.EnumerateArray())
+                    {
+                        var description = new Descriptions();
+                        if (desc.TryGetProperty("ISOLanguageCode", out var langCodeProp) ||
+                            desc.TryGetProperty("isoLanguageCode", out langCodeProp) ||
+                            desc.TryGetProperty("ISOLanguagecode", out langCodeProp))
+                        {
+                            description.ISOLanguageCode = langCodeProp.GetString();
+                        }
+                        if (desc.TryGetProperty("Description", out var descProp) ||
+                            desc.TryGetProperty("description", out descProp))
+                        {
+                            description.Description = descProp.GetString();
+                        }
+                        descriptions.Add(description);
+                    }
+                    param.Descriptions = descriptions;
+                }
+
+                //// Get AllowRFQ (case-insensitive)
+                //if (item.TryGetProperty("AllowRFQ", out var allowRFQProp) || 
+                //    item.TryGetProperty("allowRFQ", out allowRFQProp))
+                //{
+                //    param.AllowRFQ = allowRFQProp.GetBoolean();
+                //}
+
+                // Get Blocked (case-insensitive)
+                if (item.TryGetProperty("Blocked", out var blockedProp) ||
+                    item.TryGetProperty("blocked", out blockedProp))
+                {
+                    param.Blocked = blockedProp.GetBoolean();
+                }
+
+                // Get Website (optional)
+                if (item.TryGetProperty("Website", out var websiteProp) ||
+                    item.TryGetProperty("website", out websiteProp))
+                {
+                    param.Website = websiteProp.GetString();
+                }
+
+                // Get AllowQuickQuote (optional)
+                if (item.TryGetProperty("AllowQuickQuote", out var allowQuickQuoteProp) ||
+                    item.TryGetProperty("allowQuickQuote", out allowQuickQuoteProp))
+                {
+                    param.AllowQuickQuote = allowQuickQuoteProp.GetBoolean();
+                }
+
+                result.Add(param);
+            }
+
+            _logger.LogInformation("Manually mapped {Count} materials", result.Count);
+            return result;
+        }
+
     }
 }
-

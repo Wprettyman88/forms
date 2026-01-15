@@ -132,14 +132,49 @@
                 </div>
             </div>
 
-            <form method="post">
+            @if (!string.IsNullOrEmpty(Model.ApiPayloadJson))
+            {
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card border-info h-100">
+                            <div class="card-header bg-info text-white">
+                                <h2 class="h5 mb-0">Debug: API Payload</h2>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-2">The API payload structure:</p>
+                                <pre class="bg-light p-3 rounded border" style="max-height: 600px; overflow-y: auto; font-size: 0.875rem; white-space: pre-wrap; word-wrap: break-word; margin-bottom: 0;"><code>@Model.ApiPayloadJson</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-success h-100">
+                            <div class="card-header bg-success text-white">
+                                <h2 class="h5 mb-0">Debug: Form Values</h2>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-2">The form values to map from:</p>
+                                <pre class="bg-light p-3 rounded border" style="max-height: 600px; overflow-y: auto; font-size: 0.875rem; white-space: pre-wrap; word-wrap: break-word; margin-bottom: 0;"><code>@Model.FormValuesJson</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <form method="post" id="confirm-form">
                 @Html.AntiForgeryToken()
                 <div class="d-flex gap-3 justify-content-end flex-wrap">
                     <button type="submit" asp-page-handler="Edit" class="btn btn-outline-secondary btn-lg">Edit</button>
-                    <button type="submit" asp-page-handler="Confirm" class="btn btn-primary btn-lg">Confirm & Submit</button>
+                    <button type="submit" asp-page-handler="Confirm" class="btn btn-primary btn-lg" id="confirm-submit-btn">Confirm & Submit</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+@if (Model.QuoteRequest != null)
+{
+    <script id="quote-payload-data" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.QuoteRequest, new System.Text.Json.JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))</script>
+}
+
+<script src="~/js/site.js"></script>
+<script src="~/js/submit.js" asp-append-version="true"></script>

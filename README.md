@@ -86,10 +86,10 @@ See stnspr\_\_.materie\_ in Cerm SQL Database for values of "1" for "Rotary Die"
 1. Add contact information fields for resellers and end users during the quote/order/invoice process.
 2. Store contact information with the quote/order/invoice records.
 3. Display contact information on generated documents (quotes, orders, invoices).
-4. Printing needs to come from CERM.
-5. Filter Materials.
-6. Change Materials to use substrates API from CERM.
-7. Auth via GP account number.
+4. Auth via GP account number.
+5. Add footnote if they do not chose to use an existing die.
+6. Filter die on shape.
+
 
 
 
